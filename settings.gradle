@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }
+        jcenter()
+    }
+}
+
+rootProject.name = 'destiny-bot-mirai'
+
