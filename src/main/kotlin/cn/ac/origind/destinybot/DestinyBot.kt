@@ -1,40 +1,58 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.response.*
+import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
+import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
+import com.uchuhimo.konf.Config
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.features.ServerResponseException
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
-import net.mamoe.mirai.console.plugins.PluginBase
+import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.message.MessagePacket
 import net.mamoe.mirai.message.data.PlainText
+import org.bson.Document
+import org.litote.kmongo.KMongo
+import org.litote.kmongo.findOne
+import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.Locale
-import java.time.ZoneId
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 
-const val endpoint = "https://www.bungie.net/Platform"
-const val key = "9654e41465f34fb6a7aea347abd5deeb"
 
 val races = arrayOf("人类", "觉醒者", "EXO", "未知")
 val classes = arrayOf("泰坦", "猎人", "术士", "未知")
 val genders = arrayOf("男", "女", "未知")
 
-object DestinyBot : PluginBase() {
+object DestinyBot {
+    init {
+        System.setProperty("org.litote.mongo.test.mapping.service", "org.litote.kmongo.jackson.JacksonClassMappingTypeService")
+        System.setProperty("org.litote.mongo.mapping.service", "org.litote.kmongo.jackson.JacksonClassMappingTypeService")
+    }
+
+    val logger = LoggerFactory.getLogger("DestinyBot")
+
     // Key: QQ
     val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
     // 用户在查询什么?
     val userQuerys = ConcurrentHashMap<Long, QueryType>()
+
+    val config = Config { addSpec(AccountSpec) }
+        .from.json.file("config.json")
+        .from.env()
+        .from.systemProperties()
+    val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault());
 
@@ -72,13 +90,22 @@ object DestinyBot : PluginBase() {
         }
     }
 
-    override fun onDisable() {
+    val mongoClient = KMongo.createClient()
+    val db = mongoClient.getDatabase("destiny2")
+
+    @JvmStatic
+    fun main(args: Array<String>) = runBlocking {
+        bot.login()
+        logger.info("Logged in")
+        bot.subscribeMessages()
+        bot.join()
         client.close()
+        bot.close()
     }
 
-    override fun onEnable() {
+    private fun Bot.subscribeMessages() {
         subscribeMessages {
-            this.subscriber(this.finding(Regex("\\d+")).filter) {
+            finding(Regex("\\d+")) {
                 val packet = this
                 launch {
                     if (profileQuerys[packet.sender.id].isNullOrEmpty())
@@ -94,16 +121,16 @@ object DestinyBot : PluginBase() {
                     }
                 }
             }
-            this.subscriber(this.matching(Regex("/destiny \\d+")).filter) {
-                replyProfile(3, message[PlainText].stringValue.removePrefix("/destiny "), this)
+            matching(Regex("/ds \\d+")) {
+                replyProfile(3, message[PlainText].stringValue.removePrefix("/ds "), this)
             }
-            this.subscriber(this.startsWith("/destiny search ").filter) {
+            startsWith("/ds search ") {
                 val packet = this
                 profileQuerys.remove(packet.sender.id)
                 launch {
-                    val criteria = packet.message[PlainText].removePrefix("/destiny search ").toString()
-                    val result = searchUsers(criteria).await()
-                    val profiles = searchProfiles(criteria).await()
+                    val criteria = packet.message[PlainText].removePrefix("/ds search ").toString()
+                    val result = async { searchUsers(criteria) }.await()
+                    val profiles = async { searchProfiles(criteria) }.await()
                     packet.reply("搜索命运2玩家: $criteria")
                     if (result.isNullOrEmpty() && profiles.isNullOrEmpty()) {
                         packet.reply("没有搜索到玩家，请检查你的搜索内容")
@@ -135,12 +162,12 @@ object DestinyBot : PluginBase() {
                     })
                 }
             }
-            this.subscriber(this.startsWith("/tracker ").filter) {
+            startsWith("/tracker ") {
                 val packet = this
                 launch {
                     val criteria = packet.message[PlainText].removePrefix("/tracker ").toString()
-                    val result = searchProfiles(criteria).await()
-                    packet.reply("搜索命运2玩家: $criteria")
+                    val result = async { searchTrackerProfiles(criteria) }.await()
+                    packet.reply("搜索Tracker上的命运2玩家: $criteria")
                     if (result.isNullOrEmpty()) {
                         packet.reply("没有搜索到玩家，请检查你的搜索内容")
                         return@launch
@@ -148,7 +175,7 @@ object DestinyBot : PluginBase() {
                     packet.reply(buildString {
                         appendln("搜索到玩家: ")
                         result.forEachIndexed { index, profile ->
-                            appendln("${index + 1}. ${profile.displayName}: https://destinytracker.com/destiny-2/profile/steam/${profile.membershipId}/overview")
+                            appendln("${index + 1}. ${profile.platformUserHandle}: https://destinytracker.com/destiny-2/profile/${profile.platformSlug}/${profile.platformUserIdentifier}/overview")
                         }
                     })
                 }
@@ -156,12 +183,12 @@ object DestinyBot : PluginBase() {
         }
     }
 
-    suspend fun bungieUserToDestinyUser(membershipId: String): DestinyMembershipQuery? = getDestinyProfiles(membershipId, 3).await()?.destinyMemberships?.firstOrNull()
+    suspend fun bungieUserToDestinyUser(membershipId: String): DestinyMembershipQuery? = withContext(Dispatchers.IO) { getDestinyProfiles(membershipId, 3) }?.destinyMemberships?.firstOrNull()
 
     suspend fun replyProfile(membershipType: Int, membershipId: String, packet: MessagePacket<*, *>) {
         try {
             packet.reply("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
-            val profile = getProfile(3, membershipId).await()
+            val profile = withContext(Dispatchers.IO) { getProfile(3, membershipId) }
             if (profile == null)
                 packet.reply("获取详细信息时失败，请重试。")
             val userProfile = profile?.profile?.data?.userInfo
@@ -169,46 +196,44 @@ object DestinyBot : PluginBase() {
                 appendln("玩家: ${userProfile?.displayName}")
                 appendln("ID: ${userProfile?.membershipId}")
             })
+            val perks = mutableListOf<Pair<String, DestinyItemPerksComponent>>()
+            val itemDefinitionCollection = db.getCollection("DestinyInventoryItemLiteDefinition_chs")
+            val perkCollection = db.getCollection("DestinySandboxPerkDefinition_chs")
             packet.reply(buildString {
                 profile?.characters?.data?.forEach { (id, character) ->
+                    val detail = getCharacter(membershipType, membershipId, id)
                     appendln("角色 $id：")
                     appendln("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
                     appendln("光等: ${character.light}")
                     appendln("最后上线时间: ${formatter.format(Instant.parse(character.dateLastPlayed))}")
                     appendln("总游戏时间: ${character.minutesPlayedTotal}分钟")
+                    if (detail != null) {
+                        detail.equipment.data?.items?.forEachIndexed { index, it ->
+                            val document = itemDefinitionCollection.findOne("""{"_id":"${it.itemHash}"}""")
+                            val name = document?.get("displayProperties", Document::class.java)?.getString("name") ?: ""
+                            if (detail.itemComponents.perks.data?.contains(it.itemInstanceId) == true) {
+                                perks += name to (detail.itemComponents.perks.data?.get(it.itemInstanceId) as DestinyItemPerksComponent)
+                            }
+                            append(name)
+                            append(" ")
+                        }
+                    }
+                    appendln()
+                }
+            })
+            packet.reply(buildString {
+                for ((name, perkList) in perks) {
+                    append(name).append(": ")
+                    for (perk in perkList.perks) {
+                        val document = perkCollection.findOne("""{"_id":"${perk.perkHash}"}""")
+                        append(document?.get("displayProperties", Document::class.java)?.getString("name") ?: "")
+                        append(" ")
+                    }
                     appendln()
                 }
             })
         } catch (e: ServerResponseException) {
             packet.reply("获取详细信息时失败，请重试。\n${e.localizedMessage}")
         }
-    }
-
-    override fun onLoad() {
-        logger.info("Loaded Origind Plugin")
-    }
-
-    suspend fun getDestinyProfiles(membershipId: String, membershipType: Int) = async {
-        client.get<GetMembershipsResponse>("$endpoint/User/GetMembershipsById/$membershipId/$membershipType/") {
-            header("X-API-Key", key)
-        }.Response
-    }
-
-    suspend fun searchUsers(criteria: String) = async {
-        client.get<UserSearchResponse>("$endpoint/User/SearchUsers/?q=$criteria") {
-            header("X-API-Key", key)
-        }.Response
-    }
-
-    suspend fun searchProfiles(criteria: String) = async {
-        client.get<DestinyProfileSearchResponse>("$endpoint/Destiny2/SearchDestinyPlayer/TigerSteam/$criteria/ ") {
-            header("X-API-Key", key)
-        }.Response
-    }
-
-    suspend fun getProfile(membershipType: Int, membershipId: String) = async {
-        client.get<DestinyProfileResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/?components=Profiles%2CCharacters%2CProfileCurrencies") {
-            header("X-API-Key", key)
-        }.Response
     }
 }

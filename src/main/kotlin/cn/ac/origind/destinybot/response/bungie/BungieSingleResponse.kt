@@ -1,4 +1,4 @@
-package cn.ac.origind.destinybot.response
+package cn.ac.origind.destinybot.response.bungie
 
 import kotlinx.serialization.Serializable
 
