@@ -35,7 +35,7 @@ data class DestinyProfileComponent(var userInfo: DestinyMembershipQuery = Destin
 open class CharacterComponent(
     var dateLastPlayed: String = "", var minutesPlayedThisSession: Long = 0, var minutesPlayedTotal: Long = 0,
     var light: Int = 0, var stats: Map<String, Int> = emptyMap(),
-    var raceType: Int = 3, var classType: Int = 3, var genderType: Int = 2,
+    var raceType: Int = 3, var classType: Int = 3, var genderType: Int = 2
 )
 
 data class DestinyProfile(var profile: PrivacyData<DestinyProfileComponent> = PrivacyData(), var characters: PrivacyData<Map<String, CharacterComponent>> = PrivacyData())

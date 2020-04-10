@@ -1,8 +1,8 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.jetbrains.kotlin.jvm' version '1.4-M1'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.4-M1'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.71'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.3.71'
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
@@ -11,6 +11,7 @@ version '1.0-SNAPSHOT'
 mainClassName = 'cn.ac.origind.destinybot.DestinyBot'
 
 repositories {
+    maven { url = "https://maven.aliyun.com/repository/public" }
     jcenter()
     maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }
 }
