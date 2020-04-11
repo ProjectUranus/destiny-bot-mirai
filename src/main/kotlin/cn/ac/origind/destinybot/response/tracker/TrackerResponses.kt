@@ -6,7 +6,7 @@ open class TrackerResponse<T>(var data: T? = null)
 
 data class BaseTrackerProfile(
     var platformId: Int = 0, var platformSlug: String = "", var platformUserIdentifier: String = "", var platformUserHandle: String = "",
-    var avatarUrl: String = "",
+    var avatarUrl: String = ""
 )
 
 data class TrackerCharacterAttribute(var mobility: Int = 0, var resilience: Int = 0, var recovery: Int = 0)

@@ -1,31 +1,26 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.uno.drawUnoCards
+import cn.ac.origind.uno.generateDefaultCards
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.awt.image.RenderedImage
+import java.io.File
+import javax.imageio.ImageIO
 
 object TestDestinyBot {
 
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-            val client = HttpClient() {
-                install(JsonFeature) {
-                    serializer = GsonSerializer()
-                }
-            }
-
-            // Get the content of an URL.
-            val firstBytes = client.get<String>("$endpoint/Destiny2/3/Profile/4611686018494241466/?components=Profiles%2CCharacters%2CProfileCurrencies") {
-                header("X-API-Key", key)
-            }
-
-            println(firstBytes)
-
-            client.close()
+            withContext(Dispatchers.IO) { ImageIO.write(drawUnoCards(generateDefaultCards()), "png", File("output.png")) }
         }
     }
 }
