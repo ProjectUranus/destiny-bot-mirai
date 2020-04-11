@@ -2,6 +2,7 @@ package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
+import com.github.takakuraanri.cardgame.mirai.doudizhuGames
 import com.uchuhimo.konf.Config
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -105,11 +106,19 @@ object DestinyBot {
 
     private fun Bot.subscribeMessages() {
         subscribeMessages {
+            /*
+            content(matching(Regex("[？?¿]*")).filter) {
+                reply("你扣个锤子问号？")
+            }
+            */
+            contains("…") {
+                reply("咱…")
+            }
             finding(Regex("\\d+")) {
+                if (profileQuerys[sender.id].isNullOrEmpty())
+                    return@finding
                 val packet = this
                 launch {
-                    if (profileQuerys[packet.sender.id].isNullOrEmpty())
-                        return@launch
                     val result = profileQuerys[packet.sender.id]!!
                     val index = packet.message[PlainText].stringValue.toInt() - 1
                     if (result.size < index + 1) return@launch
@@ -180,6 +189,7 @@ object DestinyBot {
                     })
                 }
             }
+            doudizhuGames()
         }
     }
 
