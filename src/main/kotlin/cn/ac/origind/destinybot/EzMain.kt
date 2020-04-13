@@ -3,6 +3,7 @@ package cn.ac.origind.destinybot
 import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.subscribeMessages
+import net.mamoe.mirai.join
 
 data class Score(var x: Int = 0)
 

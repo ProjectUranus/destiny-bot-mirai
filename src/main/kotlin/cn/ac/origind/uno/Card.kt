@@ -14,8 +14,136 @@ val green = Color(0x4C, 0xAF, 0x50)
 val red = Color(0xF4, 0x43, 0x36)
 val wild = Color(163, 154, 141)
 
+fun Card(source: String) : Card? {
+    var color: CardColor? = null
+    var value: CardValue? = null
+
+    fun SetColor(str: String) : Boolean {
+        if (color != null)
+            return false
+        when (str) {
+            "绿", "G" -> {
+                color = CardColor.Green
+                return true
+            }
+            "蓝", "B" -> {
+                color = CardColor.Blue
+                return true
+            }
+            "红", "R" -> {
+                color = CardColor.Red
+                return true
+            }
+            "黄", "Y" -> {
+                color = CardColor.Yellow
+                return true
+            }
+        }
+
+        return false
+    }
+
+    fun SetValue(str: String, isFirst: Boolean) : Boolean
+    {
+        if (value != null)
+            return false
+        when (str)
+        {
+            "W" -> {
+                value = CardValue.Wild
+                return true
+            }
+            "S", "禁" -> {
+                value = CardValue.Skip
+                return true
+            }
+            "R" -> {
+                value = CardValue.Reverse
+                return true
+            }
+            "+2" -> {
+                value = CardValue.DrawTwo
+                return true
+            }
+            "+4" -> {
+                value = CardValue.DrawFour
+                return true
+            }
+            "转" -> {
+                value = if (isFirst) CardValue.Wild else CardValue.Reverse
+                return true
+            }
+        }
+
+        if (str.length == 1 && str.matches(Regex("\\d")))
+        {
+            value = CardValue.values()[Integer.parseInt(str)]
+            return true
+        }
+
+        return false
+    }
+
+    fun SetOne(str: String, isFirst: Boolean)
+    {
+        if (SetValue(str, isFirst))
+            return
+        SetColor(str)
+    }
+
+    fun Set(first: String, last: String)
+    {
+        if (first.contains("R")) {
+            SetOne(last, false)
+            SetOne(first, true)
+            return
+        }
+
+//                if (last.Contains("R")) {
+//                    SetOne(first, true);
+//                    SetOne(last, false);
+//                    return;
+//                }
+        SetOne(first, true)
+        SetOne(last, false)
+    }
+
+
+    var s = source.trim().toUpperCase()
+//    for (var specialCard in Card.SpecialCards.Where(specialCard => s == specialCard.ShortName))
+//    return specialCard;
+
+    when (s.length) {
+        2 -> {
+            var first = s.substring(0, s.length - 1)
+            var last = s.substring(1, s.length - 1)
+            Set(first, last)
+        }
+        3 -> {
+            var f1 = s.substring(0, 1)
+            var l1 = s.substring(1, 2)
+            Set(f1, l1)
+            if (color == null || value == null) {
+                color = null
+                value = null
+            }
+
+            var f2 = s.substring(0, 2)
+            var l2 = s.substring(2, 1)
+            Set(f2, l2)
+        }
+        else -> return null
+    }
+
+    return if (color == null || value == null) {
+        null
+    } else {
+        Card(color!!, value!!)
+    }
+}
+
 open class Card(
-    val color: CardColor,
+    var color: CardColor,
     val value: CardValue,
     val type: CardType = value.type
 ) : Comparable<Card> {
@@ -58,6 +186,42 @@ open class Card(
         var result = color.hashCode()
         result = 31 * result + value.hashCode()
         return result
+    }
+
+    fun IsValidForPlayerAndRemove(player: UnoPlayer) : Boolean
+    {
+        loop@ for (index in 0 until player.cards.size)
+        {
+            val playerCard = player.cards[index]
+            when (type)
+            {
+                CardType.Number, CardType.Skip, CardType.Reverse, CardType.DrawTwo -> {
+                    if (playerCard.value == value && playerCard.color == color) {
+                        player.cards.remove(playerCard);
+                        return true;
+                    }
+                    continue@loop;
+                }
+                CardType.DrawFour, CardType.Wild -> {
+                    if (playerCard.valueIndex == valueIndex) {
+                        player.cards.remove(playerCard);
+                        return true;
+                    }
+                    continue@loop;
+                }
+                CardType.Special -> // 假装不知道如何重写运算符
+                {
+//                    if (!(playerCard is ISpecialCard)) continue;
+//                    if (((ISpecialCard) card).ShortName == ((ISpecialCard) playerCard).ShortName) {
+//                        player.Cards.RemoveAt(index);
+//                        return true;
+//                    }
+                    continue@loop;
+                }
+            }
+        }
+
+        return false;
     }
 }
 

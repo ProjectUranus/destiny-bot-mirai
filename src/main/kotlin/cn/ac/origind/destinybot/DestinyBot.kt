@@ -2,6 +2,8 @@ package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
+import cn.ac.origind.uno.initUnoGame
+import cn.ac.origind.uno.unoGames
 import com.github.takakuraanri.cardgame.mirai.doudizhuGames
 import com.uchuhimo.konf.Config
 import io.ktor.client.HttpClient
@@ -14,6 +16,7 @@ import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.subscribeMessages
+import net.mamoe.mirai.join
 import net.mamoe.mirai.message.MessagePacket
 import net.mamoe.mirai.message.data.PlainText
 import org.bson.Document
@@ -94,16 +97,19 @@ object DestinyBot {
     val mongoClient = KMongo.createClient()
     val db = mongoClient.getDatabase("destiny2")
 
+    @ExperimentalStdlibApi
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
         bot.login()
         logger.info("Logged in")
+        initUnoGame()
         bot.subscribeMessages()
         bot.join()
         client.close()
         bot.close()
     }
 
+    @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
         subscribeMessages {
             /*
@@ -190,6 +196,7 @@ object DestinyBot {
                 }
             }
             doudizhuGames()
+            unoGames()
         }
     }
 
