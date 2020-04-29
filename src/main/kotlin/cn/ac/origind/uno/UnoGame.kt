@@ -140,6 +140,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
             }
         }
     }
+    /*
     content({Card(it) != null}) {
         if (unoGameMap[subject.id] != null) {
             val desk = unoGameMap.getOrPut(subject.id) { Desk(subject as Group) }
@@ -164,6 +165,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
             }
         }
     }
+     */
     case("印卡") {
         val desk = Desk(subject as Group)
         sendImage(drawUnoCards(desk.generateCards(20).sorted()))

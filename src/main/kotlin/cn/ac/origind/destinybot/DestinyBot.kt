@@ -1,10 +1,16 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.data.DataStore
+import cn.ac.origind.destinybot.data.User
+import cn.ac.origind.destinybot.data.users
 import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
+import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
+import cn.ac.origind.destinybot.response.lightgg.ItemPerks
+import cn.ac.origind.minecraft.MinecraftClientLogin
+import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
-import com.github.takakuraanri.cardgame.mirai.doudizhuGames
 import com.uchuhimo.konf.Config
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -13,14 +19,17 @@ import io.ktor.client.features.ServerResponseException
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.network.sockets.ConnectTimeoutException
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.join
+import net.mamoe.mirai.message.ContactMessage
 import net.mamoe.mirai.message.MessagePacket
 import net.mamoe.mirai.message.data.PlainText
 import org.bson.Document
 import org.litote.kmongo.KMongo
+import org.litote.kmongo.aggregate
 import org.litote.kmongo.findOne
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -52,7 +61,7 @@ object DestinyBot {
     // 用户在查询什么?
     val userQuerys = ConcurrentHashMap<Long, QueryType>()
 
-    val config = Config { addSpec(AccountSpec) }
+    val config = Config { addSpec(AccountSpec); addSpec(MinecraftSpec) }
         .from.json.file("config.json")
         .from.env()
         .from.systemProperties()
@@ -96,13 +105,24 @@ object DestinyBot {
 
     val mongoClient = KMongo.createClient()
     val db = mongoClient.getDatabase("destiny2")
+    val activities = Object2ObjectOpenHashMap<String, String>()
+    val lores = Object2ObjectOpenHashMap<String, String>()
 
     @ExperimentalStdlibApi
     @JvmStatic
     fun main(args: Array<String>) = runBlocking {
+        DataStore.init()
         bot.login()
         logger.info("Logged in")
         initUnoGame()
+        withContext(Dispatchers.Default) {
+            val collection = db.getCollection("DestinyActivityDefinition_chs")
+            activities.putAll(collection.find().map { it.get("displayProperties", Document::class.java)?.getString("name") to it.getString("_id") })
+
+            val loreCollection = db.getCollection("DestinyLoreDefinition_chs")
+            lores.putAll(loreCollection.find().map { it.get("displayProperties", Document::class.java)?.getString("name") to it.getString("_id") })
+            println(activities.keys.toString())
+        }
         bot.subscribeMessages()
         bot.join()
         client.close()
@@ -117,12 +137,100 @@ object DestinyBot {
                 reply("你扣个锤子问号？")
             }
             */
-            contains("…") {
+            content({ str -> activities.containsKey(str) }) {
+                val collection = db.getCollection("DestinyActivityDefinition_chs")
+                val doc = collection.findOne("""{"_id": "${activities[it]}"}""")
+                reply(doc?.get("displayProperties", Document::class.java)?.getString("description") ?: "")
+            }
+            content({ str -> lores.containsKey(str) }) {
+                val collection = db.getCollection("DestinyLoreDefinition_chs")
+                val doc = collection.findOne("""{"_id": "${lores[it]}"}""")
+                val displayProperties = doc?.get("displayProperties", Document::class.java)
+                displayProperties?.let { display ->
+                    reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
+                }
+            }
+            case("花园世界") {
+                reply("前往罗斯128b，与你的扭曲人伙伴们一起延缓凋零的复苏。")
+            }
+            case("小行星带") {
+                reply("调查新近出现的bart遗迹，查明它的装配线生成概率。")
+            }
+            case("传奇故事") {
+                val collection = db.getCollection("DestinyLoreDefinition_chs")
+                val doc = collection.aggregate<Document>("""{${'$'}sample: { size: 1 }}""").firstOrNull()
+                val displayProperties = doc?.get("displayProperties", Document::class.java)
+                displayProperties?.let { display ->
+                    reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
+                }
+            }
+            case("/ping") {
+                MinecraftClientLogin.statusAsync(subject)
+            }
+            matching(Regex("/ping (\\w(\\.)?)+(:\\d+)?")) {
+                val address = get(PlainText).stringValue.removePrefix("/ping ")
+                if (address.contains(':')) {
+                    try {
+                        MinecraftClientLogin.statusAsync(subject, address.substringBefore(':'), Integer.parseInt(address.substringAfter(':')))
+                    } catch (e: NumberFormatException) {
+                        reply(e.localizedMessage)
+                    }
+                } else {
+                    MinecraftClientLogin.statusAsync(subject, address)
+                }
+            }
+            case("咱…") {
                 reply("咱…")
             }
-            finding(Regex("\\d+")) {
+
+            case("我的信息") {
+                val user = users[sender.id]
+                if (user?.destinyMembershipId == null) reply("你还没有绑定账号! 请搜索一个玩家并绑定之。")
+                else {
+                    replyProfile(user.destinyMembershipType, user.destinyMembershipId!!, this)
+                }
+            }
+            matching(Regex("绑定 (\\d+)")) {
+                val id = get(PlainText).stringValue.removePrefix("绑定 ").toLong()
+                if (profileQuerys[sender.id]?.get(id.toInt() - 1) == null) {
+                    // 直接绑定 ID
+                    if (get(PlainText).stringValue.length < 8) reply("你输入的命运2 ID是不是稍微短了点？")
+                    else {
+                        val destinyMembership = getProfile(3, id.toString())?.profile?.data?.userInfo
+                        if (destinyMembership == null) reply("无法找到该玩家，检查一下？")
+                        else {
+                            users.getOrPut(sender.id) { User(sender.id) }.apply {
+                                destinyMembershipId = destinyMembership.membershipId
+                                destinyMembershipType = destinyMembership.membershipType
+                                destinyDisplayName = destinyMembership.displayName
+                            }
+                            DataStore.save()
+                            reply("绑定 ${destinyMembership.displayName}(${destinyMembership.membershipId}) 到 ${sender.id} 成功。")
+                        }
+                    }
+                } else {
+                    // 绑定搜索序号
+                    val result = profileQuerys[sender.id]!!
+                    val index = id - 1
+                    if (result.size < index + 1) reply("你的序号太大了点。")
+                    val destinyMembership = result[index.toInt()]
+                    try {
+                        users.getOrPut(sender.id) { User(sender.id) }.apply {
+                            destinyMembershipId = destinyMembership.membershipId
+                            destinyMembershipType = destinyMembership.membershipType
+                            destinyDisplayName = destinyMembership.displayName
+                        }
+                        DataStore.save()
+                        reply("绑定 ${destinyMembership.displayName}(${destinyMembership.membershipId}) 到 ${sender.id} 成功。")
+                    } catch (e: ServerResponseException) {
+                        reply("获取详细信息时失败，请重试。\n${e.localizedMessage}")
+                    }
+                }
+            }
+
+            matching(Regex("\\d+")) {
                 if (profileQuerys[sender.id].isNullOrEmpty())
-                    return@finding
+                    return@matching
                 val packet = this
                 launch {
                     val result = profileQuerys[packet.sender.id]!!
@@ -136,6 +244,21 @@ object DestinyBot {
                     }
                 }
             }
+            matching(Regex("/ds item .+")) {
+                val itemDefinitionCollection = db.getCollection("DestinyInventoryItemDefinition_chs")
+                val document = itemDefinitionCollection.findOne("""{"displayProperties.name": "${get(PlainText).stringValue.removePrefix("/ds item ")}"}""")
+                if (document == null) reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
+                else {
+                    try {
+                        val item = lightggGson.fromJson(document.toJson(), ItemDefinition::class.java)
+                        val perks = getItemPerks(item._id!!)
+                        println(perks)
+                        replyPerks(item, perks, this)
+                    } catch (e: NullPointerException) {
+                        reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
+                    }
+                }
+            }
             matching(Regex("/ds \\d+")) {
                 replyProfile(3, message[PlainText].stringValue.removePrefix("/ds "), this)
             }
@@ -144,8 +267,10 @@ object DestinyBot {
                 profileQuerys.remove(packet.sender.id)
                 launch {
                     val criteria = packet.message[PlainText].removePrefix("/ds search ").toString()
-                    val result = async { searchUsers(criteria) }.await()
-                    val profiles = async { searchProfiles(criteria) }.await()
+                    val result =
+                        withContext(Dispatchers.Default) { searchUsers(criteria) }
+                    val profiles =
+                        withContext(Dispatchers.Default) { searchProfiles(criteria) }
                     packet.reply("搜索命运2玩家: $criteria")
                     if (result.isNullOrEmpty() && profiles.isNullOrEmpty()) {
                         packet.reply("没有搜索到玩家，请检查你的搜索内容")
@@ -173,7 +298,8 @@ object DestinyBot {
                         players.forEachIndexed { index, profile ->
                             appendln("${index + 1}. ${profile.displayName}: ...${profile.membershipId.takeLast(3)}")
                         }
-                        appendln("请直接回复编号来获取详细信息。")
+                        appendln("请直接回复前面的序号来获取详细信息。")
+                        appendln("或者，回复 绑定 [序号] 来将该用户绑定到你的 QQ 上。")
                     })
                 }
             }
@@ -195,9 +321,28 @@ object DestinyBot {
                     })
                 }
             }
-            doudizhuGames()
+//            doudizhuGames()
             unoGames()
         }
+    }
+
+    suspend fun replyPerks(item: ItemDefinition, perks: ItemPerks, packet: ContactMessage) {
+        packet.reply(buildString {
+            appendln("信息来自 light.gg")
+            appendln(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
+            appendln(item.displayProperties?.description)
+            appendln()
+            append("Godroll(可能并不存在): ")
+            appendln(perks.curated.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+            append("社区精选 Perk: ")
+            appendln(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+            append("PvP Perk: ")
+            appendln(perks.pvp.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+            append("PvE Perk: ")
+            appendln(perks.pve.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+            append("其他 Perk: ")
+            append(perks.normal.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+        })
     }
 
     suspend fun bungieUserToDestinyUser(membershipId: String): DestinyMembershipQuery? = withContext(Dispatchers.IO) { getDestinyProfiles(membershipId, 3) }?.destinyMemberships?.firstOrNull()
