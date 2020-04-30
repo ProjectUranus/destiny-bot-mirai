@@ -1,4 +1,4 @@
-package cn.ac.origind.destinybot
+package cn.ac.origind.destinybot.config
 
 import com.uchuhimo.konf.ConfigSpec
 
