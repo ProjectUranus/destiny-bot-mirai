@@ -31,10 +31,9 @@ object DataStore {
     suspend fun save() {
         withContext(Dispatchers.IO) {
             for ((id, user) in users) {
-                Files.writeString(
+                Files.write(
                     usersDir.resolve("$id.json"),
-                    gson.toJson(user),
-                    StandardCharsets.UTF_8,
+                    gson.toJson(user).toByteArray(StandardCharsets.UTF_8),
                     *writeOptions
                 )
             }
@@ -46,7 +45,7 @@ object DataStore {
         users.clear()
         withContext(Dispatchers.IO) {
             Files.list(usersDir).forEach {
-                val user = gson.fromJson(Files.readString(it, StandardCharsets.UTF_8), User::class.java)
+                val user = gson.fromJson(String(Files.readAllBytes(it), StandardCharsets.UTF_8), User::class.java)
                 users[user.qq] = user
             }
             logger.info("Loaded {} users", users.size)

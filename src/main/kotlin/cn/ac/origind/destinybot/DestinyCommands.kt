@@ -1,8 +1,10 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.data.User
 import cn.ac.origind.destinybot.data.users
+import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import io.ktor.client.features.ServerResponseException
@@ -93,15 +95,27 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
     }
     matching(Regex("/ds item .+")) {
         val itemDefinitionCollection = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_chs")
-        val document = itemDefinitionCollection.findOne("""{"displayProperties.name": "${get(PlainText).stringValue.removePrefix("/ds item ")}"}""")
+        var itemSearch = get(PlainText).stringValue.removePrefix("/ds item ")
+        if (DestinyBot.searchToWeaponMap.containsKey(itemSearch)) itemSearch = DestinyBot.searchToWeaponMap[itemSearch]!!
+        else {
+            for ((weapon, alias) in DestinyBot.config[DictSpec.aliases]) {
+                if (itemSearch.matches(Regex(alias))) {
+                    DestinyBot.searchToWeaponMap[itemSearch] = weapon
+                    itemSearch = weapon
+                    break
+                }
+            }
+        }
+
+        val document = itemDefinitionCollection.findOne("""{"displayProperties.name": "${DestinyBot.searchToWeaponMap[itemSearch] ?: itemSearch}"}""")
         if (document == null) reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
         else {
             try {
                 val item = lightggGson.fromJson(document.toJson(), ItemDefinition::class.java)
                 val perks = getItemPerks(item._id!!)
                 DestinyBot.replyPerks(item, perks, this)
-            } catch (e: NullPointerException) {
-                reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
+            } catch (e: Exception) {
+                reply("搜索失败：" + e.joinToString())
             }
         }
     }

@@ -29,7 +29,7 @@ object MinecraftClientLogin {
         client.session.setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY,
             ServerInfoHandler { session, info ->
                 contact.launch {
-                    contact.sendImage(info.icon)
+                    info.icon?.let { icon -> contact.sendImage(icon) }
                     contact.sendMessage(
                         buildMessageChain {
                             add(info.description.fullText.replace(Regex("§[\\w\\d]"), ""))

@@ -1,6 +1,7 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.config.AccountSpec
+import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.QueryType
@@ -59,7 +60,7 @@ object DestinyBot {
     // 用户在查询什么?
     val userQuerys = ConcurrentHashMap<Long, QueryType>()
 
-    val config = Config { addSpec(AccountSpec); addSpec(MinecraftSpec) }
+    val config = Config { addSpec(AccountSpec); addSpec(MinecraftSpec); addSpec(DictSpec) }
         .from.json.file("config.json")
         .from.env()
         .from.systemProperties()
@@ -105,6 +106,7 @@ object DestinyBot {
     val db = mongoClient.getDatabase("destiny2")
     val activities = Object2ObjectOpenHashMap<String, String>()
     val lores = Object2ObjectOpenHashMap<String, String>()
+    val searchToWeaponMap = ConcurrentHashMap<String, String>()
 
     @ExperimentalStdlibApi
     @JvmStatic
@@ -208,7 +210,7 @@ object DestinyBot {
                 appendln(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
                 appendln(item.displayProperties?.description)
                 appendln()
-                append("Godroll(可能并不存在): ")
+                append("官Roll(可能并不存在): ")
                 appendln(perks.curated.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
                 append("社区精选 Perk: ")
                 appendln(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
