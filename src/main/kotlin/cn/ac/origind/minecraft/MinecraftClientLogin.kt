@@ -1,6 +1,7 @@
 package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
+import cn.ac.origind.destinybot.exception.joinToString
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
 import com.github.steveice10.mc.protocol.data.SubProtocol
@@ -14,14 +15,20 @@ import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.sendMessage
 import net.mamoe.mirai.message.data.buildMessageChain
-import net.mamoe.mirai.message.sendImage
+import net.mamoe.mirai.message.upload
 import java.net.Proxy
 
 
 object MinecraftClientLogin {
     val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
 
-    suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.host], port: Int = config[MinecraftSpec.port]) = withContext(Dispatchers.Default) { status(contact, host, port) }
+    suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.host], port: Int = config[MinecraftSpec.port]) = withContext(Dispatchers.Default) {
+        try {
+            status(contact, host, port)
+        } catch (e: Exception) {
+            contact.sendMessage("连接失败: " + e.joinToString())
+        }
+    }
 
     fun status(contact: Contact, host: String, port: Int) {
         val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
@@ -29,9 +36,9 @@ object MinecraftClientLogin {
         client.session.setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY,
             ServerInfoHandler { session, info ->
                 contact.launch {
-                    info.icon?.let { icon -> contact.sendImage(icon) }
                     contact.sendMessage(
                         buildMessageChain {
+                            info.icon?.let { icon -> add(icon.upload(contact)) }
                             add(info.description.fullText.replace(Regex("§[\\w\\d]"), ""))
                             add("\n")
                             add("版本: ${info.versionInfo.versionName}, ${info.versionInfo.protocolVersion}\n")

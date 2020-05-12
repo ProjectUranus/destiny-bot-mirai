@@ -12,6 +12,8 @@ import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.destinybot.response.lightgg.PerkType
 import cn.ac.origind.minecraft.MinecraftClientLogin
 import cn.ac.origind.minecraft.MinecraftSpec
+import cn.ac.origind.minecraft.initMinecraftVersion
+import cn.ac.origind.minecraft.minecraftCommands
 import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
 import com.uchuhimo.konf.Config
@@ -115,6 +117,7 @@ object DestinyBot {
         bot.login()
         logger.info("Logged in")
         initUnoGame()
+        initMinecraftVersion()
         withContext(Dispatchers.Default) {
             val collection = db.getCollection("DestinyActivityDefinition_chs")
             activities.putAll(collection.find().map { it.get("displayProperties", Document::class.java)?.getString("name") to it.getString("_id") })
@@ -161,6 +164,10 @@ object DestinyBot {
             }
             matching(Regex("/ping (\\w(\\.)?)+(:\\d+)?")) {
                 val address = get(PlainText).stringValue.removePrefix("/ping ")
+                if (address.startsWith("192.168.") || address.startsWith("127.")) {
+                    reply("老子用 LOIC 把你妈的内网 ping 了，再往里面塞几个超长握手包让你妈的服务器彻底暴毙")
+                    return@matching
+                }
                 if (address.contains(':')) {
                     try {
                         MinecraftClientLogin.statusAsync(subject, address.substringBefore(':'), Integer.parseInt(address.substringAfter(':')))
@@ -195,6 +202,7 @@ object DestinyBot {
 //            doudizhuGames()
             destinyCommands()
             unoGames()
+            minecraftCommands()
         }
     }
 
