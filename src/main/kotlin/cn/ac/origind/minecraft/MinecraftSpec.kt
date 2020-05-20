@@ -3,6 +3,8 @@ package cn.ac.origind.minecraft
 import com.uchuhimo.konf.ConfigSpec
 
 object MinecraftSpec : ConfigSpec() {
-    val host by required<String>()
-    val port by optional(25565)
+    val default by required<MinecraftServerSpec>()
+    val servers by required<Map<String, MinecraftServerSpec>>()
 }
+
+data class MinecraftServerSpec(var host: String? = null, var port: Int = 25565)

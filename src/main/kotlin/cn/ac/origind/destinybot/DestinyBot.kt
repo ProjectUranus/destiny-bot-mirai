@@ -10,7 +10,6 @@ import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.destinybot.response.lightgg.PerkType
-import cn.ac.origind.minecraft.MinecraftClientLogin
 import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
@@ -158,25 +157,6 @@ object DestinyBot {
             }
             case("小行星带") {
                 reply("调查新近出现的bart遗迹，查明它的装配线生成概率。")
-            }
-            case("/ping") {
-                MinecraftClientLogin.statusAsync(subject)
-            }
-            matching(Regex("/ping (\\w(\\.)?)+(:\\d+)?")) {
-                val address = get(PlainText).stringValue.removePrefix("/ping ")
-                if (address.startsWith("192.168.") || address.startsWith("127.")) {
-                    reply("老子用 LOIC 把你妈的内网 ping 了，再往里面塞几个超长握手包让你妈的服务器彻底暴毙")
-                    return@matching
-                }
-                if (address.contains(':')) {
-                    try {
-                        MinecraftClientLogin.statusAsync(subject, address.substringBefore(':'), Integer.parseInt(address.substringAfter(':')))
-                    } catch (e: NumberFormatException) {
-                        reply(e.localizedMessage)
-                    }
-                } else {
-                    MinecraftClientLogin.statusAsync(subject, address)
-                }
             }
             case("咱…") {
                 reply("咱…")

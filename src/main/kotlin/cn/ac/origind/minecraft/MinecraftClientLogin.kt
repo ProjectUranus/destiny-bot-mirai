@@ -22,7 +22,7 @@ import java.net.Proxy
 object MinecraftClientLogin {
     val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
 
-    suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.host], port: Int = config[MinecraftSpec.port]) = withContext(Dispatchers.Default) {
+    suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.default].host!!, port: Int = config[MinecraftSpec.default].port) = withContext(Dispatchers.Default) {
         try {
             status(contact, host, port)
         } catch (e: Exception) {
@@ -40,8 +40,7 @@ object MinecraftClientLogin {
                         buildMessageChain {
                             info.icon?.let { icon -> add(icon.upload(contact)) }
                             add(info.description.fullText.replace(Regex("§[\\w\\d]"), ""))
-                            add("\n")
-                            add("版本: ${info.versionInfo.versionName}, ${info.versionInfo.protocolVersion}\n")
+                            add(", ${info.versionInfo.versionName}\n")
                             add("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}\n")
                             if (info.playerInfo.onlinePlayers > 0) {
                                 add(info.playerInfo.players.joinToString(", ") { it.name })

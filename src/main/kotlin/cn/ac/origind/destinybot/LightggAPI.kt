@@ -3,6 +3,9 @@ package cn.ac.origind.destinybot
 import cn.ac.origind.destinybot.response.lightgg.*
 import com.google.gson.Gson
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.litote.kmongo.findOne
@@ -11,6 +14,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 val lightggGson = Gson()
+
+class ItemNotFoundException(itemId: String, displayName: String? = null) : Exception("未在 light.gg 上找到物品 $itemId")
 
 suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO) {
     val dir = Paths.get("destiny2_perks")
@@ -28,8 +33,17 @@ suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO
 }
 
 suspend fun getItemPerksInternal(itemId: String): ItemPerks {
+    suspend fun request(): String {
+        val response = DestinyBot.client.get<HttpResponse>("https://www.light.gg/db/items/$itemId")
+        if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.InternalServerError) throw ItemNotFoundException(itemId)
+        else return response.readText()
+    }
+
     val regex = Regex("<div class=\"clearfix perks\">(.+)<div id=\"my-rolls\">", RegexOption.DOT_MATCHES_ALL)
-    val text = regex.find(DestinyBot.client.get<String>("https://www.light.gg/db/items/$itemId"))?.groupValues?.get(0)!!
+
+
+
+    val text = regex.find(request())?.groupValues?.get(0)!!
     val iconRegex = Regex("src=\"https://bungie.net(/common/destiny2_content/icons/(\\w+).png)")
     val hashRegex = Regex("<a href=\"/db/items/(\\d+)/")
 

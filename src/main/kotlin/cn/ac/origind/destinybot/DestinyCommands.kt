@@ -15,7 +15,7 @@ import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.message.data.PlainText
 import org.bson.Document
 import org.litote.kmongo.aggregate
-import org.litote.kmongo.findOne
+import org.litote.kmongo.find
 import java.util.concurrent.ConcurrentHashMap
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
@@ -27,7 +27,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             appendln("获取该帮助: /ds help, /dshelp, /help")
             appendln("帮助的帮助: 带<>的为必填内容, []为选填内容")
             appendln("命运2命令:")
-            appendln("传奇故事 [传奇故事]: 获取一个随机或特定的传奇故事")
+            appendln("“传奇故事” 或 <传奇故事的名称>: 获取一个随机或特定的传奇故事")
             appendln("/ds item <武器>: 在 light.gg 上获取武器 Perk 信息")
             appendln("/ds search <用户名>: 搜索一名命运2玩家")
             appendln("/tracker <用户名>: 在 Destiny Tracker 上搜索一名玩家")
@@ -36,7 +36,10 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             appendln()
             appendln("Minecraft 命令:")
             appendln("/<MC版本, 去掉.> 如/1710: 显示你在玩的MC版本有多远古")
+            appendln("/latest: 显示最新 Minecraft 快照信息")
+            appendln("/release: 显示最新 Minecraft 信息")
             appendln("/ping: 显示 Origind 服务器信息")
+            appendln("/ping <原版/origind/gtnhhard/goodtime/咕咕time>: 显示其他的服务器信息")
             appendln("/ping <服务器地址>: 显示你指定的服务器信息, 暂不支持 SRV 记录")
             appendln()
             appendln("WIP: 斗地主功能和UNO功能 未实现")
@@ -44,12 +47,16 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         })
     }
     case("传奇故事") {
-        val collection = DestinyBot.db.getCollection("DestinyLoreDefinition_chs")
-        val doc = collection.aggregate<Document>("""{${'$'}sample: { size: 1 }}""").firstOrNull()
-        val displayProperties = doc?.get("displayProperties", Document::class.java)
-        displayProperties?.let { display ->
-            reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
+        suspend fun findAndReply() {
+            val collection = DestinyBot.db.getCollection("DestinyLoreDefinition_chs")
+            val doc = collection.aggregate<Document>("""{${'$'}sample: { size: 1 }}""").firstOrNull()
+            val displayProperties = doc?.get("displayProperties", Document::class.java)
+            if (displayProperties?.getString("name").isNullOrEmpty()) findAndReply()
+            displayProperties?.let { display ->
+                this@case.reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
+            }
         }
+        findAndReply()
     }
     case("我的信息") {
         val user = users[sender.id]
@@ -130,16 +137,26 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             }
         }
 
-        val document = itemDefinitionCollection.findOne("""{"displayProperties.name": "${DestinyBot.searchToWeaponMap[itemSearch] ?: itemSearch}"}""")
-        if (document == null) reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
+        val documents = itemDefinitionCollection.find("""{"displayProperties.name": "${DestinyBot.searchToWeaponMap[itemSearch] ?: itemSearch}"}""").toList()
+        if (documents.isEmpty()) reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
         else {
-            try {
-                val item = lightggGson.fromJson(document.toJson(), ItemDefinition::class.java)
-                val perks = getItemPerks(item._id!!)
-                DestinyBot.replyPerks(item, perks, this)
-            } catch (e: Exception) {
-                reply("搜索失败：" + e.joinToString())
-            }
+            documents.map { document ->
+                GlobalScope.launch(Dispatchers.Default) {
+                    try {
+                        val item = lightggGson.fromJson(document.toJson(), ItemDefinition::class.java)
+                        val perks = getItemPerks(item._id!!)
+                        DestinyBot.replyPerks(item, perks, this@matching)
+                    } catch (e: ItemNotFoundException) {
+                        this@matching.subject.launch {
+                            reply("搜索失败: ${e.localizedMessage}, 正在尝试其他方式")
+                        }
+                    } catch (e: Exception) {
+                        this@matching.subject.launch {
+                            reply("搜索失败：" + e.joinToString())
+                        }
+                    }
+                }
+            }.joinAll()
         }
     }
     matching(Regex("/ds \\d+")) {
