@@ -15,13 +15,21 @@ import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
 import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.uchuhimo.konf.Config
 import io.ktor.client.HttpClient
+import io.ktor.client.call.TypeInfo
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.features.ServerResponseException
-import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.JsonSerializer
+import io.ktor.http.ContentType
+import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.TextContent
+import io.ktor.utils.io.core.Input
+import io.ktor.utils.io.core.readText
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.*
 import net.mamoe.mirai.Bot
@@ -36,7 +44,6 @@ import org.bson.Document
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.findOne
 import org.slf4j.LoggerFactory
-import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -49,6 +56,8 @@ import kotlin.collections.component2
 val races = arrayOf("人类", "觉醒者", "EXO", "未知")
 val classes = arrayOf("泰坦", "猎人", "术士", "未知")
 val genders = arrayOf("男", "女", "未知")
+
+val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
 object DestinyBot {
     init {
@@ -71,7 +80,17 @@ object DestinyBot {
 
     val client = HttpClient(CIO) {
         install(JsonFeature) {
-            serializer = GsonSerializer()
+            serializer = object : JsonSerializer {
+                private val backend = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+
+                override fun read(type: TypeInfo, body: Input): Any {
+                    val text = body.readText()
+                    return backend.adapter<Any>(type.reifiedType).fromJson(text)!!
+                }
+
+                override fun write(data: Any, contentType: ContentType): OutgoingContent =
+                    TextContent(backend.adapter(data.javaClass).toJson(data), contentType)
+            }
         }
         engine {
             endpoint {
@@ -228,8 +247,9 @@ object DestinyBot {
             val perks = mutableListOf<Pair<String, DestinyItemPerksComponent>>()
             val itemDefinitionCollection = db.getCollection("DestinyInventoryItemLiteDefinition_chs")
             val perkCollection = db.getCollection("DestinySandboxPerkDefinition_chs")
-            packet.reply(buildString {
-                profile?.characters?.data?.forEach { (id, character) ->
+            packet.sendImage(
+                profile?.characters?.data?.map { (id, character) ->
+                    /*
                     val detail = getCharacter(membershipType, membershipId, id)
                     appendln("角色 $id：")
                     appendln("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
@@ -248,8 +268,10 @@ object DestinyBot {
                         }
                     }
                     appendln()
-                }
-            })
+                     */
+                    character
+                }?.toImage()!!
+            )
             packet.reply(buildString {
                 for ((name, perkList) in perks) {
                     append(name).append(": ")

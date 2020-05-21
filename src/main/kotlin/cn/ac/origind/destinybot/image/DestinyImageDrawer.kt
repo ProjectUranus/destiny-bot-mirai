@@ -1,5 +1,9 @@
 package cn.ac.origind.destinybot.image
 
+import cn.ac.origind.destinybot.classes
+import cn.ac.origind.destinybot.genders
+import cn.ac.origind.destinybot.races
+import cn.ac.origind.destinybot.response.bungie.CharacterComponent
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.destinybot.response.lightgg.PerkType
@@ -25,6 +29,34 @@ fun text(text: String) : BufferedImage {
         font = Font("Segoe UI", Font.PLAIN, 18)
         drawString(text, 0, 0)
         dispose()
+    }
+    return image
+}
+
+suspend fun List<CharacterComponent>.toImage() : BufferedImage {
+    val image = BufferedImage(474, 135 + size * 112, BufferedImage.TYPE_INT_ARGB)
+    var y = 0
+    for (character in this) {
+        val icon = getImage(character.emblemBackgroundPath)
+        with(image.createGraphics()) {
+            font = Font("Microsoft YaHei UI", Font.BOLD, 24)
+            var metrics = getFontMetrics(font)
+
+            drawImage(icon, 0, 0, null)
+
+            drawString(classes[character.classType], 1210 - 1120, 460 - 407 + y + metrics.ascent)
+
+            color = Color.YELLOW
+            drawString(character.light.toString(), 1513 - 1120, 421 - 407 + y + metrics.ascent)
+            font = Font("Microsoft YaHei UI", Font.BOLD, 19)
+            metrics = getFontMetrics(font)
+            color = Color.GRAY
+            drawString("${genders[character.genderType]} ${races[character.raceType]}", 1210 - 1120, 460 - 407 + y + metrics.ascent)
+
+            y += 112
+
+            dispose()
+        }
     }
     return image
 }

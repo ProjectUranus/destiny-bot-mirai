@@ -143,7 +143,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             documents.map { document ->
                 GlobalScope.launch(Dispatchers.Default) {
                     try {
-                        val item = lightggGson.fromJson(document.toJson(), ItemDefinition::class.java)
+                        val item = withContext(Dispatchers.IO) { moshi.adapter(ItemDefinition::class.java).fromJson(document.toJson())!! }
                         val perks = getItemPerks(item._id!!)
                         DestinyBot.replyPerks(item, perks, this@matching)
                     } catch (e: ItemNotFoundException) {

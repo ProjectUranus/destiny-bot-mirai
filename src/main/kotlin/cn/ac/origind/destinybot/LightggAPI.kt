@@ -13,8 +13,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
-val lightggGson = Gson()
-
 class ItemNotFoundException(itemId: String, displayName: String? = null) : Exception("未在 light.gg 上找到物品 $itemId")
 
 suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO) {
@@ -23,11 +21,11 @@ suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO
 
     if (Files.notExists(dir)) Files.createDirectories(dir)
     if (Files.exists(path)) {
-        return@withContext lightggGson.fromJson(String(Files.readAllBytes(path), StandardCharsets.UTF_8), Item::class.java)?.perks!!
+        return@withContext moshi.adapter(Item::class.java).fromJson(String(Files.readAllBytes(path), StandardCharsets.UTF_8))?.perks!!
     } else {
         val perks = getItemPerksInternal(itemId)
         val itemDefJson = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_chs").findOne("""{"hash": $itemId}""")?.toJson()
-        Files.write(path, lightggGson.toJson(Item(perks, lightggGson.fromJson(itemDefJson, ItemDefinition::class.java))).toByteArray(StandardCharsets.UTF_8))
+        Files.write(path, moshi.adapter(Item::class.java).toJson(Item(perks, moshi.adapter(ItemDefinition::class.java).fromJson(itemDefJson))).toByteArray(StandardCharsets.UTF_8))
         return@withContext perks
     }
 }
@@ -62,7 +60,7 @@ suspend fun getItemPerksInternal(itemId: String): ItemPerks {
             ?.toJson()
         val itemJson = itemsCollection.findOne("""{"hash": $hash}""")
             ?.toJson()
-        val perk = lightggGson.fromJson(itemJson ?: perkJson, ItemPerk::class.java)
+        val perk = moshi.adapter(ItemPerk::class.java).fromJson(itemJson ?: perkJson)
         if (perk != null) {
             perk.type = when (perk.itemTypeDisplayName) {
                 "枪管" -> PerkType.BARREL

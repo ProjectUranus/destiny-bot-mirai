@@ -1,6 +1,6 @@
 package cn.ac.origind.destinybot.data
 
-import com.google.gson.GsonBuilder
+import cn.ac.origind.destinybot.moshi
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,11 +11,10 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 val users = Long2ObjectOpenHashMap<User>()
+val userAdapter = moshi.adapter(User::class.java)
 
 object DataStore {
     private val writeOptions = arrayOf(StandardOpenOption.WRITE, StandardOpenOption.CREATE)
-
-    val gson = GsonBuilder().setPrettyPrinting().create()
     val logger = LoggerFactory.getLogger("DataStore")
     val usersDir = Paths.get("users").toAbsolutePath()
 
@@ -33,7 +32,7 @@ object DataStore {
             for ((id, user) in users) {
                 Files.write(
                     usersDir.resolve("$id.json"),
-                    gson.toJson(user).toByteArray(StandardCharsets.UTF_8),
+                    userAdapter.toJson(user).toByteArray(StandardCharsets.UTF_8),
                     *writeOptions
                 )
             }
@@ -45,7 +44,7 @@ object DataStore {
         users.clear()
         withContext(Dispatchers.IO) {
             Files.list(usersDir).forEach {
-                val user = gson.fromJson(String(Files.readAllBytes(it), StandardCharsets.UTF_8), User::class.java)
+                val user = userAdapter.fromJson(String(Files.readAllBytes(it), StandardCharsets.UTF_8))!!
                 users[user.qq] = user
             }
             logger.info("Loaded {} users", users.size)

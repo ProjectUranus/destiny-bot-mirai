@@ -1,7 +1,7 @@
 package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
-import cn.ac.origind.destinybot.lightggGson
+import cn.ac.origind.destinybot.moshi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
@@ -20,7 +20,7 @@ lateinit var versionManifest: MinecraftVersionManifest
 lateinit var versionMap: Map<String, Version>
 
 suspend fun initMinecraftVersion() {
-    versionManifest = lightggGson.fromJson(withContext(Dispatchers.IO) { Files.readString(Paths.get("version_manifest.json"), StandardCharsets.UTF_8) }, MinecraftVersionManifest::class.java)
+    versionManifest = withContext(Dispatchers.IO) { moshi.adapter(MinecraftVersionManifest::class.java).fromJson(Files.readString(Paths.get("version_manifest.json"), StandardCharsets.UTF_8))!! }
     versionMap = versionManifest.versions?.map { "/" + it.id!!.replace(".", "") to it }?.toMap() ?: emptyMap()
 }
 
@@ -30,7 +30,7 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
     }
     matching(Regex("/ping (\\w(\\.)?)+(:\\d+)?")) {
         val address = get(PlainText).stringValue.removePrefix("/ping ")
-        if (address.startsWith("192.168.") || address.startsWith("127.")) {
+        if (address.startsWith("192.") || address.startsWith("127.")) {
             reply("老子用 LOIC 把你妈的内网 ping 了，再往里面塞几个超长握手包让你妈的服务器彻底暴毙")
             return@matching
         }
@@ -44,7 +44,7 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
             MinecraftClientLogin.statusAsync(subject, address)
         }
     }
-    content({ config[MinecraftSpec.servers].containsKey(it) }) {
+    content({ it.startsWith("/ping ") && config[MinecraftSpec.servers].containsKey(it.removePrefix("/ping ")) }) {
         val spec = config[MinecraftSpec.servers][it]
         MinecraftClientLogin.statusAsync(subject, spec!!.host!!, spec.port)
     }
