@@ -28,8 +28,12 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
     case("/ping") {
         MinecraftClientLogin.statusAsync(subject)
     }
-    matching(Regex("/ping (\\w(\\.)?)+(:\\d+)?")) {
-        val address = get(PlainText).stringValue.removePrefix("/ping ")
+    subscriber(content { it.startsWith("/ping ") && config[MinecraftSpec.servers].containsKey(it.removePrefix("/ping ")) }.filter) {
+        val spec = config[MinecraftSpec.servers][it]
+        MinecraftClientLogin.statusAsync(subject, spec!!.host!!, spec.port)
+    }
+    matching(Regex("/ping (\\w+\\.)+(\\w)+(:\\d+)?")) {
+        val address = message[PlainText]!!.content.removePrefix("/ping ")
         if (address.startsWith("192.") || address.startsWith("127.")) {
             reply("老子用 LOIC 把你妈的内网 ping 了，再往里面塞几个超长握手包让你妈的服务器彻底暴毙")
             return@matching
@@ -43,10 +47,6 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
         } else {
             MinecraftClientLogin.statusAsync(subject, address)
         }
-    }
-    content({ it.startsWith("/ping ") && config[MinecraftSpec.servers].containsKey(it.removePrefix("/ping ")) }) {
-        val spec = config[MinecraftSpec.servers][it]
-        MinecraftClientLogin.statusAsync(subject, spec!!.host!!, spec.port)
     }
     case("/release") {
         val version = versionMap["/" + versionManifest.latest?.release?.replace(".", "")]
@@ -76,13 +76,13 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
             append("你怎么还不去玩 Minecraft ${version?.id}?")
         })
     }
-    content({ versionMap.containsKey(it) }) {
+    content { versionMap.containsKey(it) }.reply {
         val version = versionMap[it]
         val now = LocalDateTime.now()
         val duration = Duration.between(Instant.parse(version?.releaseTime), Instant.now())
         val period = Period.between(ZonedDateTime.parse(version?.releaseTime).toLocalDate(), now.toLocalDate())
 
-        reply(buildString {
+        buildString {
             append("Minecraft ${version?.id} 已经发布 ")
             if (period.years > 0) append("${period.years} 年 ")
             if (period.months > 0) append("${period.months} 月 ")
@@ -92,6 +92,6 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
             } else {
                 append("你怎么还不去玩 Minecraft ${version?.id}?")
             }
-        })
+        }
     }
 }

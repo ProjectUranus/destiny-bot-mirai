@@ -29,8 +29,8 @@ suspend fun initUnoGame() {
 
 @ExperimentalStdlibApi
 fun MessagePacketSubscribersBuilder.unoGames() {
-    content(caseAny(messagesValues).filter) {
-        val command = messageCommandMap[get(PlainText).stringValue]
+    subscriber(caseAny(messagesValues).filter) {
+        val command = messageCommandMap[message[PlainText]!!.content]
         val member = (subject as Group)[sender.id]
         when (command) {
             "join" -> {
@@ -53,13 +53,13 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                         }
                     })
                 }
-                return@content
+                return@subscriber
             }
             "start" -> {
                 val desk = unoGameMap.getOrPut(subject.id) { Desk(subject as Group) }
                 if (desk.players.size < 2) {
                     reply("喂伙计，玩家人数不够！")
-                    return@content
+                    return@subscriber
                 }
                 desk.players.shuffle()
                 desk.lastCard = desk.nextCard(Predicate { it.color != CardColor.Special && it.color != CardColor.Wild }).first()
@@ -74,7 +74,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                 })
                 desk.state = Desk.GamingState.Gaming
                 desk.sendLastCardMessage()
-                return@content
+                return@subscriber
             }
         }
         if (unoGameMap[subject.id] != null) {
@@ -94,7 +94,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                         } else {
                             reply("你还不能说 UNO!")
                         }
-                        return@content
+                        return@subscriber
                     }
                     "doubtUno" -> if (desk.lastSendPlayer?.cards?.size == 1 && desk.lastSendPlayer?.uno == false) {
                         reply(desk.atMessage(desk.lastSendPlayer!!.member, "没有说 UNO，被罚牌两张！"))
@@ -104,21 +104,21 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                     "publicCard" -> {
                         player.publicCard = true
                         reply(desk.atMessage(player.member, " 明牌成功"))
-                        return@content
+                        return@subscriber
                     }
                     "myRound" -> {
                         reply("是是，我们都知道是你的回合")
-                        return@content
+                        return@subscriber
                     }
                     "autoSubmit" -> {
                         player.autoSubmit = true
                         reply("完成.")
-                        return@content
+                        return@subscriber
                     }
                     "disableAutoSubmit" -> {
                         player.autoSubmit = false
                         reply("搞定.")
-                        return@content
+                        return@subscriber
                     }
                 }
             }
@@ -146,7 +146,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
             val desk = unoGameMap.getOrPut(subject.id) { Desk(subject as Group) }
             val player = desk.players.find { it.member.id == sender.id }!!
             if (desk.state == Desk.GamingState.Gaming) {
-                val card = Card(get(PlainText).stringValue)
+                val card = Card(message[PlainText]!!.content)
                 if (card != null && UnoRule.IsValidForFollowCard(card, desk.lastCard, desk.state)) {
                     if (!UnoRule.IsValid(card, desk.lastCard!!, desk.state)) {
                         reply("你想出的牌并不匹配 UNO 规则.");

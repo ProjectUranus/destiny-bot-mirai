@@ -1,8 +1,8 @@
 package com.github.takakuraanri.cardgame.base
 
-import com.github.takakuraanri.cardgame.mirai.mention
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
 
 const val SIZE_PLAYER = 3
@@ -104,6 +104,8 @@ abstract class Game: MessageSender {
             requestCard()
         }
     }
+
+    abstract fun mention(currentPlayer: Player, s: String): Message
 
     suspend fun submitCards(cards: List<Card>) {
         if (cards.isEmpty()) return

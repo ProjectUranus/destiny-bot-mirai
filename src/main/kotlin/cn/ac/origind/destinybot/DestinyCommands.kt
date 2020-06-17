@@ -21,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
 fun MessagePacketSubscribersBuilder.destinyCommands() {
-    content(caseAny("/ds help", "/dshelp", "/help").filter) {
-        reply(buildString {
+    content(caseAny("/ds help", "/dshelp", "/help").filter).reply {
+        buildString {
             appendln("欢迎使用 LG 的命运2小帮手机器人 555EX780+1GGWP 版。")
             appendln("获取该帮助: /ds help, /dshelp, /help")
             appendln("帮助的帮助: 带<>的为必填内容, []为选填内容")
@@ -44,7 +44,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             appendln()
             appendln("WIP: 斗地主功能和UNO功能 未实现")
             append("如有任何问题[想被LG喷一顿] 请@你群中的LG")
-        })
+        }
     }
     case("传奇故事") {
         suspend fun findAndReply() {
@@ -66,10 +66,11 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     matching(Regex("绑定 (\\d+)")) {
-        val id = get(PlainText).stringValue.removePrefix("绑定 ").toLong()
+        val content = message[PlainText]?.content!!
+        val id = content.removePrefix("绑定 ").toLong()
         if (profileQuerys[sender.id]?.get(id.toInt() - 1) == null) {
             // 直接绑定 ID
-            if (get(PlainText).stringValue.length < 8) reply("你输入的命运2 ID是不是稍微短了点？")
+            if (content.length < 8) reply("你输入的命运2 ID是不是稍微短了点？")
             else {
                 val destinyMembership = getProfile(3, id.toString())?.profile?.data?.userInfo
                 if (destinyMembership == null) reply("无法找到该玩家，检查一下？")
@@ -109,7 +110,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         val packet = this
         GlobalScope.launch {
             val result = profileQuerys[packet.sender.id]!!
-            val index = packet.message[PlainText].stringValue.toInt() - 1
+            val index = packet.message[PlainText]?.content!!.toInt() - 1
             if (result.size < index + 1) return@launch
             val destinyMembership = result[index]
             try {
@@ -125,7 +126,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
     }
     matching(Regex("/ds item .+")) {
         val itemDefinitionCollection = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_chs")
-        var itemSearch = get(PlainText).stringValue.removePrefix("/ds item ")
+        var itemSearch = message[PlainText]!!.content.removePrefix("/ds item ")
         if (DestinyBot.searchToWeaponMap.containsKey(itemSearch)) itemSearch = DestinyBot.searchToWeaponMap[itemSearch]!!
         else {
             for ((weapon, alias) in DestinyBot.config[DictSpec.aliases]) {
@@ -160,13 +161,13 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     matching(Regex("/ds \\d+")) {
-        DestinyBot.replyProfile(3, message[PlainText].stringValue.removePrefix("/ds "), this)
+        DestinyBot.replyProfile(3, message[PlainText]!!.content.removePrefix("/ds "), this)
     }
     startsWith("/ds search ") {
         val packet = this
         profileQuerys.remove(packet.sender.id)
         GlobalScope.launch {
-            val criteria = packet.message[PlainText].removePrefix("/ds search ").toString()
+            val criteria = packet.message[PlainText]!!.content.removePrefix("/ds search ")
             val result =
                 withContext(Dispatchers.Default) { searchUsers(criteria) }
             val profiles =

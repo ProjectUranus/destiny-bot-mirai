@@ -9,14 +9,15 @@ import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
 import com.github.steveice10.packetlib.Client
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.io.ByteArrayInputStream
 import net.mamoe.mirai.contact.Contact
-import net.mamoe.mirai.contact.sendMessage
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.upload
+import net.mamoe.mirai.utils.toExternalImage
+import net.mamoe.mirai.utils.upload
 import java.net.Proxy
+import javax.imageio.ImageIO
 
 
 object MinecraftClientLogin {
@@ -24,13 +25,15 @@ object MinecraftClientLogin {
 
     suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.default].host!!, port: Int = config[MinecraftSpec.default].port) = withContext(Dispatchers.Default) {
         try {
-            status(contact, host, port)
+            GlobalScope.launch {
+                status(contact, host, port)
+            }
         } catch (e: Exception) {
             contact.sendMessage("连接失败: " + e.joinToString())
         }
     }
 
-    fun status(contact: Contact, host: String, port: Int) {
+    suspend fun status(contact: Contact, host: String, port: Int) {
         val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
         client.session.setFlag(MinecraftConstants.AUTH_PROXY_KEY, Proxy.NO_PROXY)
         client.session.setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY,
@@ -38,9 +41,9 @@ object MinecraftClientLogin {
                 contact.launch {
                     contact.sendMessage(
                         buildMessageChain {
-                            info.icon?.let { icon -> add(icon.upload(contact)) }
+                            info.icon?.let { icon -> add(icon.toExternalImage().upload(contact)) }
                             add(info.description.fullText.replace(Regex("§[\\w\\d]"), ""))
-                            add(", ${info.versionInfo.versionName}\n")
+                            add(", ${info.versionInfo.versionName.replace(Regex("((thermos|cauldron|craftbukkit|mcpc|kcauldron|fml),?)+"), "")}\n")
                             add("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}\n")
                             if (info.playerInfo.onlinePlayers > 0) {
                                 add(info.playerInfo.players.joinToString(", ") { it.name })
@@ -55,5 +58,7 @@ object MinecraftClientLogin {
                 contact.launch { contact.sendMessage("服务器延迟为 ${pingTime}ms") } })
 
         client.session.connect()
+
+        delay(1000)
     }
 }

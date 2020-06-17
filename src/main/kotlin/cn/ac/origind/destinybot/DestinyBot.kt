@@ -31,13 +31,14 @@ import io.ktor.http.content.TextContent
 import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.readText
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.join
-import net.mamoe.mirai.message.ContactMessage
-import net.mamoe.mirai.message.MessagePacket
-import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.MessageEvent
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.upload
 import org.bson.Document
@@ -74,7 +75,9 @@ object DestinyBot {
         .from.json.file("config.json")
         .from.env()
         .from.systemProperties()
-    val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) }
+    val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) {
+        fileBasedDeviceInfo()
+    } }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault());
 
@@ -158,17 +161,18 @@ object DestinyBot {
                 reply("你扣个锤子问号？")
             }
             */
-            content({ str -> activities.containsKey(str) }) {
+            content { str -> activities.containsKey(str) }.reply {
                 val collection = db.getCollection("DestinyActivityDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${activities[it]}"}""")
-                reply(doc?.get("displayProperties", Document::class.java)?.getString("description") ?: "")
+                doc?.get("displayProperties", Document::class.java)?.getString("description") ?: ""
             }
-            content({ str -> lores.containsKey(str) }) {
+            content { str -> lores.containsKey(str) }.reply {
+                if (it.isNullOrEmpty()) return@reply null
                 val collection = db.getCollection("DestinyLoreDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${lores[it]}"}""")
                 val displayProperties = doc?.get("displayProperties", Document::class.java)
                 displayProperties?.let { display ->
-                    reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
+                    "传奇故事：" + display.getString("name") + '\n' + display.getString("description")
                 }
             }
             case("花园世界") {
@@ -183,8 +187,10 @@ object DestinyBot {
             startsWith("/tracker ") {
                 val packet = this
                 launch {
-                    val criteria = packet.message[PlainText].removePrefix("/tracker ").toString()
-                    val result = async { searchTrackerProfiles(criteria) }.await()
+                    val criteria = it.removePrefix("/tracker ")
+                    val result = withContext(Dispatchers.Default) {
+                        searchTrackerProfiles(criteria)
+                    }
                     packet.reply("搜索Tracker上的命运2玩家: $criteria")
                     if (result.isNullOrEmpty()) {
                         packet.reply("没有搜索到玩家，请检查你的搜索内容")
@@ -205,7 +211,7 @@ object DestinyBot {
         }
     }
 
-    suspend fun replyPerks(item: ItemDefinition, perks: ItemPerks, packet: ContactMessage) {
+    suspend fun replyPerks(item: ItemDefinition, perks: ItemPerks, packet: MessageEvent) {
         packet.reply(item.toImage(perks).upload(packet.subject))
         packet.reply(buildMessageChain {
             val barrels = perks.all.filter { it.type == PerkType.BARREL }
@@ -233,7 +239,7 @@ object DestinyBot {
 
     suspend fun bungieUserToDestinyUser(membershipId: String): DestinyMembershipQuery? = withContext(Dispatchers.IO) { getDestinyProfiles(membershipId, 3) }?.destinyMemberships?.firstOrNull()
 
-    suspend fun replyProfile(membershipType: Int, membershipId: String, packet: MessagePacket<*, *>) {
+    suspend fun replyProfile(membershipType: Int, membershipId: String, packet: MessageEvent) {
         try {
             packet.reply("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
             val profile = withContext(Dispatchers.IO) { getProfile(3, membershipId) }

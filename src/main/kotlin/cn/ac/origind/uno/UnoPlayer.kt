@@ -1,7 +1,6 @@
 package cn.ac.origind.uno
 
 import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.sendMessage
 import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.message.sendImage
 import java.time.Instant

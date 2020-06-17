@@ -46,4 +46,8 @@
             <pattern>[%d{HH:mm:ss}] [%t/%level]: %msg%n</pattern>
         </encoder>
     </appender>
+
+    <root level="debug">
+        <appender-ref ref="stdout" />
+    </root>
 </configuration>

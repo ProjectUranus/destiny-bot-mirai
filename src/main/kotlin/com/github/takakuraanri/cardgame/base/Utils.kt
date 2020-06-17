@@ -4,7 +4,7 @@ import net.mamoe.mirai.event.Listener
 import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.event.MessageSubscribersBuilder
-import net.mamoe.mirai.message.ContactMessage
+import net.mamoe.mirai.message.MessageEvent
 
 fun List<Card>.isContinuously(): Boolean {
     if (isNullOrEmpty()) return false
@@ -17,11 +17,11 @@ fun List<Card>.isContinuously(): Boolean {
 }
 
 @MessageDsl
-fun MessagePacketSubscribersBuilder.caseAny(
+fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
     vararg equals: String,
     ignoreCase: Boolean = false,
     trim: Boolean = true
-): MessageSubscribersBuilder<ContactMessage, Listener<ContactMessage>, Unit, Unit>.ListeningFilter {
+): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
     val equalsSequence = equals.asSequence()
     return if (trim) {
         content { text -> equalsSequence.any { it.equals(text.trim(), ignoreCase) } }
@@ -31,11 +31,11 @@ fun MessagePacketSubscribersBuilder.caseAny(
 }
 
 @MessageDsl
-fun MessagePacketSubscribersBuilder.caseAny(
+fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
     equals: Collection<String>,
     ignoreCase: Boolean = false,
     trim: Boolean = true
-): MessageSubscribersBuilder<ContactMessage, Listener<ContactMessage>, Unit, Unit>.ListeningFilter {
+): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
     return if (trim) {
         if (ignoreCase)
             content { text -> equals.any { it.equals(text.trim(), ignoreCase) } }
@@ -50,11 +50,11 @@ fun MessagePacketSubscribersBuilder.caseAny(
 }
 
 @MessageDsl
-fun MessagePacketSubscribersBuilder.containsAny(
+fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.containsAny(
     vararg contains: String,
     ignoreCase: Boolean = false,
     trim: Boolean = true
-): MessageSubscribersBuilder<ContactMessage, Listener<ContactMessage>, Unit, Unit>.ListeningFilter {
+): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
     val containsSequence = contains.asSequence()
     return if (trim) {
         val toCheck = containsSequence.map { it.trim() }
