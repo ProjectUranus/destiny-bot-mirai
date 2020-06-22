@@ -1,21 +1,19 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.data.User
 import cn.ac.origind.destinybot.data.users
+import cn.ac.origind.destinybot.database.getRandomLore
+import cn.ac.origind.destinybot.database.searchItemDefinitions
+import cn.ac.origind.destinybot.exception.WeaponNotFoundException
 import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
-import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import com.github.takakuraanri.cardgame.base.caseAny
 import io.ktor.client.features.ServerResponseException
 import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.message.data.PlainText
-import org.bson.Document
-import org.litote.kmongo.aggregate
-import org.litote.kmongo.find
 import java.util.concurrent.ConcurrentHashMap
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
@@ -47,16 +45,8 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     case("传奇故事") {
-        suspend fun findAndReply() {
-            val collection = DestinyBot.db.getCollection("DestinyLoreDefinition_chs")
-            val doc = collection.aggregate<Document>("""{${'$'}sample: { size: 1 }}""").firstOrNull()
-            val displayProperties = doc?.get("displayProperties", Document::class.java)
-            if (displayProperties?.getString("name").isNullOrEmpty()) findAndReply()
-            displayProperties?.let { display ->
-                this@case.reply("传奇故事：" + display.getString("name") + '\n' + display.getString("description"))
-            }
-        }
-        findAndReply()
+        val lore = getRandomLore()
+        reply("传奇故事：" + lore.name + '\n' + lore.lore)
     }
     case("我的信息") {
         val user = users[sender.id]
@@ -125,39 +115,19 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     matching(Regex("/ds item .+")) {
-        val itemDefinitionCollection = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_chs")
-        var itemSearch = message[PlainText]!!.content.removePrefix("/ds item ")
-        if (DestinyBot.searchToWeaponMap.containsKey(itemSearch)) itemSearch = DestinyBot.searchToWeaponMap[itemSearch]!!
-        else {
-            for ((weapon, alias) in DestinyBot.config[DictSpec.aliases]) {
-                if (itemSearch.matches(Regex(alias))) {
-                    DestinyBot.searchToWeaponMap[itemSearch] = weapon
-                    itemSearch = weapon
-                    break
+        for (item in searchItemDefinitions(message[PlainText]!!.content.removePrefix("/ds item "))) {
+            GlobalScope.launch(Dispatchers.Default) {
+                try {
+                    val perks = getItemPerks(item._id!!)
+                    DestinyBot.replyPerks(item, perks, this@matching)
+                } catch (e: WeaponNotFoundException) {
+                    reply(e.message ?: "")
+                } catch (e: ItemNotFoundException) {
+                    reply("搜索失败: ${e.localizedMessage}, 正在尝试其他方式")
+                } catch (e: Exception) {
+                    reply("搜索失败：" + e.joinToString())
                 }
             }
-        }
-
-        val documents = itemDefinitionCollection.find("""{"displayProperties.name": "${DestinyBot.searchToWeaponMap[itemSearch] ?: itemSearch}"}""").toList()
-        if (documents.isEmpty()) reply("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
-        else {
-            documents.map { document ->
-                GlobalScope.launch(Dispatchers.Default) {
-                    try {
-                        val item = withContext(Dispatchers.IO) { moshi.adapter(ItemDefinition::class.java).fromJson(document.toJson())!! }
-                        val perks = getItemPerks(item._id!!)
-                        DestinyBot.replyPerks(item, perks, this@matching)
-                    } catch (e: ItemNotFoundException) {
-                        this@matching.subject.launch {
-                            reply("搜索失败: ${e.localizedMessage}, 正在尝试其他方式")
-                        }
-                    } catch (e: Exception) {
-                        this@matching.subject.launch {
-                            reply("搜索失败：" + e.joinToString())
-                        }
-                    }
-                }
-            }.joinAll()
         }
     }
     matching(Regex("/ds \\d+")) {

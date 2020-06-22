@@ -115,7 +115,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
                 }
                 y = 355
                 x += 93
-                drawLine(x, 355, x, 355 + 255)
+                drawLine(x, y, x, y + 255)
                 x += 16
             }
         }

@@ -129,7 +129,6 @@ object DestinyBot {
     val db = mongoClient.getDatabase("destiny2")
     val activities = Object2ObjectOpenHashMap<String, String>()
     val lores = Object2ObjectOpenHashMap<String, String>()
-    val searchToWeaponMap = ConcurrentHashMap<String, String>()
 
     @ExperimentalStdlibApi
     @JvmStatic
