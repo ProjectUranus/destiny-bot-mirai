@@ -1,9 +1,12 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.DestinyBot.client
+import cn.ac.origind.destinybot.exception.PlayerNotFoundException
 import cn.ac.origind.destinybot.response.bungie.*
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.network.sockets.ConnectTimeoutException
+import kotlinx.coroutines.*
 
 const val endpoint = "https://www.bungie.net/Platform"
 const val key = "9654e41465f34fb6a7aea347abd5deeb"
@@ -14,7 +17,40 @@ suspend fun getDestinyProfiles(membershipId: String, membershipType: Int) =
     }.Response
 
 
-suspend fun searchUsers(criteria: String) =
+suspend fun searchUsers(criteria: String): Set<DestinyMembershipQuery> {
+    val result =
+        withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
+    val profiles =
+        withContext(Dispatchers.Default) { searchProfiles(criteria) }
+    if (result.isNullOrEmpty() && profiles.isNullOrEmpty()) {
+        throw PlayerNotFoundException("没有搜索到玩家，请检查你的搜索内容")
+    }
+
+    // Filter Destiny 2 players
+    val players = mutableSetOf<DestinyMembershipQuery>()
+    players.addAll(profiles)
+    result.map { profile ->
+        GlobalScope.launch {
+            try {
+                val destinyMembership = DestinyBot.bungieUserToDestinyUser(profile.membershipId)
+                if (destinyMembership != null) {
+                    players.add(destinyMembership)
+                }
+            } catch (e: ConnectTimeoutException) {
+                throw ConnectTimeoutException("尝试获取玩家 ${profile.steamDisplayName ?: profile.displayName} 信息时超时。", e)
+            }
+        }
+    }.joinAll()
+    return players
+}
+
+suspend fun searchUsersProfile(criteria: String) =
+    searchUsers(criteria).map {
+        withContext(Dispatchers.IO) { getProfile(it.membershipType, it.membershipId) }
+    }
+
+
+suspend fun searchUsersInternal(criteria: String) =
     client.get<UserSearchResponse>("$endpoint/User/SearchUsers/?q=$criteria") {
         header("X-API-Key", key)
     }.Response

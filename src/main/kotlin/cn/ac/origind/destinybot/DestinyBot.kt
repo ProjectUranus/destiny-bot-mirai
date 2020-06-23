@@ -161,12 +161,13 @@ object DestinyBot {
             }
             */
             content { str -> activities.containsKey(str) }.reply {
+                if (it.isNullOrEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyActivityDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${activities[it]}"}""")
                 doc?.get("displayProperties", Document::class.java)?.getString("description") ?: ""
             }
             content { str -> lores.containsKey(str) }.reply {
-                if (it.isNullOrEmpty()) return@reply null
+                if (it.isNullOrEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyLoreDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${lores[it]}"}""")
                 val displayProperties = doc?.get("displayProperties", Document::class.java)

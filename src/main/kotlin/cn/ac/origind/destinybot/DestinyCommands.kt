@@ -8,7 +8,6 @@ import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
 import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
-import com.github.takakuraanri.cardgame.base.caseAny
 import io.ktor.client.features.ServerResponseException
 import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
@@ -139,7 +138,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         GlobalScope.launch {
             val criteria = packet.message[PlainText]!!.content.removePrefix("/ds search ")
             val result =
-                withContext(Dispatchers.Default) { searchUsers(criteria) }
+                withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
             val profiles =
                 withContext(Dispatchers.Default) { searchProfiles(criteria) }
             packet.reply("搜索命运2玩家: $criteria")

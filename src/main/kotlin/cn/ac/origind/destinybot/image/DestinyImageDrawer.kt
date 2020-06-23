@@ -6,6 +6,7 @@ import cn.ac.origind.destinybot.races
 import cn.ac.origind.destinybot.response.bungie.CharacterComponent
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
+import cn.ac.origind.destinybot.response.lightgg.ItemTier
 import cn.ac.origind.destinybot.response.lightgg.PerkType
 import java.awt.BasicStroke
 import java.awt.Color
@@ -34,7 +35,7 @@ fun text(text: String) : BufferedImage {
 }
 
 suspend fun List<CharacterComponent>.toImage() : BufferedImage {
-    val image = BufferedImage(474, 135 + size * 112, BufferedImage.TYPE_INT_ARGB)
+    val image = BufferedImage(474, size * 104, BufferedImage.TYPE_INT_ARGB)
     var y = 0
     for (character in this) {
         val icon = getImage(character.emblemBackgroundPath)
@@ -42,18 +43,18 @@ suspend fun List<CharacterComponent>.toImage() : BufferedImage {
             font = Font("Microsoft YaHei UI", Font.BOLD, 24)
             var metrics = getFontMetrics(font)
 
-            drawImage(icon, 0, 0, null)
+            drawImage(icon, 0, y, null)
 
-            drawString(classes[character.classType], 1210 - 1120, 460 - 407 + y + metrics.ascent)
+            drawString(classes[character.classType], 88, 16 + y + metrics.ascent)
 
             color = Color.YELLOW
-            drawString(character.light.toString(), 1513 - 1120, 421 - 407 + y + metrics.ascent)
+            drawString(character.light.toString(), 390, 14 + y + metrics.ascent)
             font = Font("Microsoft YaHei UI", Font.BOLD, 19)
             metrics = getFontMetrics(font)
             color = Color.GRAY
-            drawString("${genders[character.genderType]} ${races[character.raceType]}", 1210 - 1120, 460 - 407 + y + metrics.ascent)
+            drawString("${genders[character.genderType]} ${races[character.raceType]}", 88, 54 + y + metrics.ascent)
 
-            y += 112
+            y += 108
 
             dispose()
         }
@@ -92,13 +93,17 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
         var x = 138
         var y = 355
         if (perks.onlyCurated) {
-            for (perk in perks.curated) {
-                if (perk?.displayProperties?.name?.contains("框架") == true) {
+            for (i in perks.curated.indices) {
+                val perk = perks.curated[i]
+                if (tier == ItemTier.EXOTIC && i == 0) {
+                    drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
+                } else if (perk.displayProperties?.name?.contains("框架") == true) {
                     drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
                 } else
                     drawImage(perkImage(perk.displayProperties?.icon!!, 0).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
                 x += 93
-                drawLine(x, 355, x, 355 + 255)
+                if (i < perks.curated.indices.last)
+                    drawLine(x, 355, x, 355 + 80)
                 x += 16
             }
         }
@@ -113,10 +118,10 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
                     drawImage(perkImage(perk.displayProperties?.icon!!, perk.perkRecommend).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
                     y += 100
                 }
-                y = 355
                 x += 93
-                drawLine(x, y, x, y + 255)
+                drawLine(x, 355, x, y)
                 x += 16
+                y = 355
             }
         }
 

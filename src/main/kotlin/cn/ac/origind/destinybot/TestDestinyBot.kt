@@ -1,6 +1,5 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.image.toImage
 import kotlinx.coroutines.runBlocking
 import java.awt.Color
@@ -14,8 +13,11 @@ val godColor = Color(227, 202, 87)
 
 fun main(args: Array<String>) {
     runBlocking {
-        searchItemDefinitions("紧急求生包").forEach { item ->
-            ImageIO.write(item.toImage(getItemPerks(item)), "png", File("temp.png"))
+        searchUsersProfile("Nanami Arihara").forEach { profile ->
+            ImageIO.write(
+                profile?.characters?.data?.map { (id, character) ->
+                    character
+                }?.toImage(), "png", File("temp.png"))
         }
     }
 }
