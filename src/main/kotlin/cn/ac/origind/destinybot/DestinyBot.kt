@@ -160,16 +160,16 @@ object DestinyBot {
                 reply("你扣个锤子问号？")
             }
             */
-            content { str -> activities.containsKey(str) }.reply {
+            content { str -> activities.containsKey("/$str") }.reply {
                 if (it.isNullOrEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyActivityDefinition_chs")
-                val doc = collection.findOne("""{"_id": "${activities[it]}"}""")
+                val doc = collection.findOne("""{"_id": "${activities[it.removePrefix("/")]}"}""")
                 doc?.get("displayProperties", Document::class.java)?.getString("description") ?: ""
             }
-            content { str -> lores.containsKey(str) }.reply {
+            content { str -> lores.containsKey("/$str") }.reply {
                 if (it.isNullOrEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyLoreDefinition_chs")
-                val doc = collection.findOne("""{"_id": "${lores[it]}"}""")
+                val doc = collection.findOne("""{"_id": "${lores[it.removePrefix("/")]}"}""")
                 val displayProperties = doc?.get("displayProperties", Document::class.java)
                 displayProperties?.let { display ->
                     "传奇故事：" + display.getString("name") + '\n' + display.getString("description")
