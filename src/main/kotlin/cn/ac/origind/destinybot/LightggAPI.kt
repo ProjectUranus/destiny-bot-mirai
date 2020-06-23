@@ -1,7 +1,6 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.response.lightgg.*
-import com.google.gson.Gson
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readText
@@ -14,6 +13,8 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class ItemNotFoundException(itemId: String, displayName: String? = null) : Exception("未在 light.gg 上找到物品 $itemId")
+
+suspend fun getItemPerks(item: ItemDefinition) = getItemPerks(item._id!!)
 
 suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO) {
     val dir = Paths.get("destiny2_perks")
