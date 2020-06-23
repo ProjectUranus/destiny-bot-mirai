@@ -6,6 +6,7 @@ import cn.ac.origind.destinybot.races
 import cn.ac.origind.destinybot.response.bungie.CharacterComponent
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
+import cn.ac.origind.destinybot.response.lightgg.ItemTier
 import cn.ac.origind.destinybot.response.lightgg.PerkType
 import java.awt.BasicStroke
 import java.awt.Color
@@ -77,7 +78,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
 
         font = Font("Microsoft YaHei UI", Font.PLAIN, 30)
         metrics = getFontMetrics(font)
-        if (itemTypeAndTierDisplayName?.contains("传说") == true) {
+        if (tier == ItemTier.LEGENDARY) {
             color = legendaryColor
             drawString(itemTypeAndTierDisplayName!!, 260, 170 + metrics.ascent)
             color = Color.white
@@ -93,7 +94,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
         var y = 355
         if (perks.onlyCurated) {
             for (perk in perks.curated) {
-                if (perk?.displayProperties?.name?.contains("框架") == true) {
+                if (perk.displayProperties?.name?.contains("框架") == true) {
                     drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
                 } else
                     drawImage(perkImage(perk.displayProperties?.icon!!, 0).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
@@ -110,12 +111,15 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
 
             arrayOf(barrels, magazines, perk1, perk2).forEach {
                 for (perk in it) {
+                    if (tier == ItemTier.EXOTIC && perk.type == PerkType.BARREL) {
+                        drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
+                    }
                     drawImage(perkImage(perk.displayProperties?.icon!!, perk.perkRecommend).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
+                    drawLine(x, 355, x + 93, y)
                     y += 100
                 }
                 y = 355
                 x += 93
-                drawLine(x, 355, x, 355 + 255)
                 x += 16
             }
         }

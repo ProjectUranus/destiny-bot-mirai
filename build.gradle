@@ -17,6 +17,8 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+sourceCompatibility = targetCompatibility = "11"
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.3.7'
@@ -42,8 +44,8 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "13"
+    kotlinOptions.jvmTarget = "11"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "13"
+    kotlinOptions.jvmTarget = "11"
 }

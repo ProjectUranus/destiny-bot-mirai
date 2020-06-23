@@ -8,6 +8,7 @@ import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.utils.toExternalImage
 import net.mamoe.mirai.utils.upload
+import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -17,7 +18,7 @@ import javax.imageio.ImageIO
  * @param icon icon path in displayProperties
  * @see cn.ac.origind.destinybot.response.lightgg.DisplayProperties.icon
  */
-suspend fun getImage(icon: String) = withContext(Dispatchers.IO) {
+suspend fun getImage(icon: String): BufferedImage = withContext(Dispatchers.IO) {
     // Check Directory
     val dir = Paths.get(when {
         icon.startsWith("/common/destiny2_content/icons") -> "destiny2_icons"

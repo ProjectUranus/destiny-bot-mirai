@@ -1,6 +1,6 @@
 package cn.ac.origind.uno
 
-import com.github.takakuraanri.cardgame.base.caseAny
+import cn.ac.origind.destinybot.caseAny
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap

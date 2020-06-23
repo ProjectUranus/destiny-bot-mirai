@@ -7,7 +7,6 @@ import cn.ac.origind.destinybot.data.users
 import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
-import com.github.takakuraanri.cardgame.base.caseAny
 import io.ktor.client.features.ServerResponseException
 import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
