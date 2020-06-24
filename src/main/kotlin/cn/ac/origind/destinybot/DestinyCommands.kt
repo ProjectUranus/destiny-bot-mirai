@@ -7,12 +7,14 @@ import cn.ac.origind.destinybot.database.getRandomLore
 import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
 import cn.ac.origind.destinybot.exception.joinToString
+import cn.ac.origind.destinybot.image.getImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import io.ktor.client.features.ServerResponseException
 import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.*
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.message.data.buildMessageChain
 import java.util.concurrent.ConcurrentHashMap
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
@@ -90,6 +92,12 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             } catch (e: ServerResponseException) {
                 reply("获取详细信息时失败，请重试。\n${e.localizedMessage}")
             }
+        }
+    }
+
+    content(caseAny("周报", "命运周报").filter).reply {
+        buildMessageChain {
+            add(getImage("https:${getLatestWeeklyReportURL()}").upload())
         }
     }
 

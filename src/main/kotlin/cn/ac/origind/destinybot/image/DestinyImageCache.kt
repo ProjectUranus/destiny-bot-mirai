@@ -33,7 +33,7 @@ suspend fun getImage(icon: String): BufferedImage = withContext(Dispatchers.IO) 
         return@withContext ImageIO.read(path.toFile())
     }
 
-    Files.write(path, DestinyBot.client.get<ByteArray>("https://www.bungie.net$icon"), StandardOpenOption.WRITE, StandardOpenOption.CREATE)
+    Files.write(path, DestinyBot.client.get<ByteArray>(if (icon.startsWith("http")) icon else "https://www.bungie.net$icon"), StandardOpenOption.WRITE, StandardOpenOption.CREATE)
     return@withContext ImageIO.read(path.toFile())
 }
 
