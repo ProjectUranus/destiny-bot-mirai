@@ -1,6 +1,6 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.image.getImage
+import cn.ac.origind.minecraft.searchImmibis
 import kotlinx.coroutines.runBlocking
 import java.awt.Color
 
@@ -11,6 +11,6 @@ val godColor = Color(227, 202, 87)
 
 fun main(args: Array<String>) {
     runBlocking {
-        println(getImage("https:${getLatestWeeklyReportURL()}"))
+        searchImmibis("ae2")
     }
 }

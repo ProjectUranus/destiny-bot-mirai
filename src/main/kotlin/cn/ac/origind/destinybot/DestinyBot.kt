@@ -1,6 +1,7 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.config.AccountSpec
+import cn.ac.origind.destinybot.config.AppSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.image.toImage
@@ -11,6 +12,7 @@ import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.destinybot.response.lightgg.PerkType
 import cn.ac.origind.minecraft.MinecraftSpec
+import cn.ac.origind.minecraft.curseForgeCommands
 import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
 import cn.ac.origind.uno.initUnoGame
@@ -71,10 +73,12 @@ object DestinyBot {
     // 用户在查询什么?
     val userQuerys = ConcurrentHashMap<Long, QueryType>()
 
-    val config = Config { addSpec(AccountSpec); addSpec(MinecraftSpec); addSpec(DictSpec) }
-        .from.json.file("config.json")
-        .from.env()
-        .from.systemProperties()
+    val config = Config {
+        addSpec(AccountSpec)
+        addSpec(MinecraftSpec)
+        addSpec(DictSpec)
+        addSpec(AppSpec)
+    }.from.json.watchFile("config.json", delayTime = 10)
     val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) {
         fileBasedDeviceInfo()
     } }
@@ -205,9 +209,11 @@ object DestinyBot {
                 }
             }
 //            doudizhuGames()
+            configCommands()
             destinyCommands()
             unoGames()
             minecraftCommands()
+            curseForgeCommands()
         }
     }
 
