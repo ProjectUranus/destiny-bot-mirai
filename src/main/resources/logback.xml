@@ -1,4 +1,9 @@
-<configuration scan="true" scanPeriod="60 seconds" debug="false">
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false"
+               xmlns="http://ch.qos.logback/xml/ns/logback"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback https://cdn.jsdelivr.net/gh/enricopulatzo/logback-XSD@master/src/main/xsd/logback.xsd"
+>
     <contextName>destinybot</contextName>
     <property name="LOG_HOME" value="logs"/>
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
@@ -14,17 +19,6 @@
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_HOME}/log.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>10</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>[%d{HH:mm:ss}] [%t/%level]: %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <appender name="debugFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/debug.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>10</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -49,5 +43,6 @@
 
     <root level="info">
         <appender-ref ref="stdout" />
+        <appender-ref ref="error-file" />
     </root>
 </configuration>

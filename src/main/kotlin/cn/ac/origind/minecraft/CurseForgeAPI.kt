@@ -18,15 +18,29 @@ suspend fun searchImmibis(criteria: String) : List<ImmibisProject> {
     val urlRegex = Regex("<a class=\"result-name\" href=\"(https://(\\w+:?\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@\\-/]))?)\"><h2>(.+)</h2></a>")
 
     val html = resultsRegex.find(response.readText())?.groupValues?.get(1)!!
-    return html.split("result gray-border rounded-border").drop(1).map { resultText ->
-        val downloads = downloadsRegex.find(resultText)?.groupValues?.get(1)!!
-        val createdTime = createdRegex.find(resultText)?.groupValues?.get(1)!!
-        val lastUpdatedTime = lastUpdatedRegex.find(resultText)?.groupValues?.get(1)!!
-        val gameVersion = gameVersionRegex.find(resultText)?.groupValues?.get(1)!!
-        val url = urlRegex.find(resultText)?.groupValues?.get(1)!!
-        val name = urlRegex.find(resultText)?.groupValues?.last()!!
-        val categories = categoryRegex.findAll(resultText).map { it.groupValues[1] }.toList()
-        val author = authorRegex.find(resultText)?.groupValues?.get(1)!!
-        ImmibisProject(name, "Not implemented", author, downloads, createdTime, lastUpdatedTime, gameVersion, url, categories)
+    return html.split("result gray-border rounded-border").drop(1).mapNotNull { resultText ->
+        try {
+            val downloads = downloadsRegex.find(resultText)?.groupValues?.get(1)!!
+            val createdTime = createdRegex.find(resultText)?.groupValues?.get(1)!!
+            val lastUpdatedTime = lastUpdatedRegex.find(resultText)?.groupValues?.get(1)!!
+            val gameVersion = gameVersionRegex.find(resultText)?.groupValues?.get(1)!!
+            val url = urlRegex.find(resultText)?.groupValues?.get(1)!!
+            val name = urlRegex.find(resultText)?.groupValues?.last()!!
+            val categories = categoryRegex.findAll(resultText).map { it.groupValues[1] }.toList()
+            val author = authorRegex.find(resultText)?.groupValues?.get(1)!!
+            ImmibisProject(
+                name,
+                "Not implemented",
+                author,
+                downloads,
+                createdTime,
+                lastUpdatedTime,
+                gameVersion,
+                url,
+                categories
+            )
+        } catch (e: NullPointerException) {
+            null
+        }
     }
 }
