@@ -229,16 +229,24 @@ object DestinyBot {
                 appendln(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
                 appendln(item.displayProperties?.description)
                 appendln()
-                append("官Roll(可能并不存在): ")
+                append("官Roll(可能不掉落): ")
                 appendln(perks.curated.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
-                append("社区精选 Perk: ")
-                appendln(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
-                append("PvP Perk: ")
-                appendln(perks.pvp.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
-                append("PvE Perk: ")
-                appendln(perks.pve.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
-                append("其他 Perk: ")
-                append(perks.normal.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                if (perks.favorite.isNotEmpty()) {
+                    append("社区精选 Perk: ")
+                    appendln(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                }
+                if (perks.pvp.isNotEmpty()) {
+                    append("PvP Perk: ")
+                    appendln(perks.pvp.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                }
+                if (perks.pve.isNotEmpty()) {
+                    append("PvE Perk: ")
+                    appendln(perks.pve.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                }
+                if (perks.normal.isNotEmpty()) {
+                    append("其他 Perk: ")
+                    append(perks.normal.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                }
             })
         })
     }

@@ -27,7 +27,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             appendln("帮助的帮助: 带<>的为必填内容, []为选填内容")
             appendln("命运2命令:")
             appendln("“传奇故事” 或 <传奇故事的名称>: 获取一个随机或特定的传奇故事")
-            appendln("/ds item <武器>: 在 light.gg 上获取武器 Perk 信息")
+            appendln("perk<武器>: 在 light.gg 上获取武器 Perk 信息")
             appendln("/ds search <用户名>: 搜索一名命运2玩家")
             appendln("/tracker <用户名>: 在 Destiny Tracker 上搜索一名玩家")
             appendln("绑定 <搜索结果前的序号|玩家ID>: 绑定你的命运2账户到QQ号")
@@ -121,12 +121,12 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             }
         }
     }
-    matching(Regex("/ds item .+")) {
-        for (item in searchItemDefinitions(message[PlainText]!!.content.removePrefix("/ds item "))) {
+    startsWith("perk") {
+        for (item in searchItemDefinitions(it)) {
             GlobalScope.launch(Dispatchers.Default) {
                 try {
                     val perks = getItemPerks(item._id!!)
-                    DestinyBot.replyPerks(item, perks, this@matching)
+                    DestinyBot.replyPerks(item, perks, this@startsWith)
                 } catch (e: WeaponNotFoundException) {
                     reply(e.message ?: "")
                 } catch (e: ItemNotFoundException) {
