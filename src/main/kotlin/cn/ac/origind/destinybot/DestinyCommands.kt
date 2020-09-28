@@ -122,7 +122,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     startsWith("perk") {
-        if (it.isNullOrBlank()) return@startsWith
+        if (it.isBlank()) return@startsWith
         for (item in searchItemDefinitions(it)) {
             GlobalScope.launch(Dispatchers.Default) {
                 try {

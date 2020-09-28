@@ -255,7 +255,11 @@ object DestinyBot {
 
     suspend fun replyProfile(membershipType: Int, membershipId: String, packet: MessageEvent) {
         try {
-            packet.reply("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
+            packet.reply(buildString {
+                appendln("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
+                appendln("Braytech: https://braytech.org/3/${membershipId}")
+                append("Raid 报告: https://raid.report/pc/${membershipId}")
+            })
             val profile = withContext(Dispatchers.IO) { getProfile(3, membershipId) }
             if (profile == null)
                 packet.reply("获取详细信息时失败，请重试。")
@@ -265,7 +269,6 @@ object DestinyBot {
                 appendln("ID: ${userProfile?.membershipId}")
             })
             val perks = mutableListOf<Pair<String, DestinyItemPerksComponent>>()
-            val itemDefinitionCollection = db.getCollection("DestinyInventoryItemLiteDefinition_chs")
             val perkCollection = db.getCollection("DestinySandboxPerkDefinition_chs")
             packet.sendImage(
                 profile?.characters?.data?.map { (id, character) ->
@@ -292,6 +295,7 @@ object DestinyBot {
                     character
                 }?.toImage()!!
             )
+            /*
             packet.reply(buildString {
                 for ((name, perkList) in perks) {
                     append(name).append(": ")
@@ -302,7 +306,7 @@ object DestinyBot {
                     }
                     appendln()
                 }
-            })
+            })*/
         } catch (e: ServerResponseException) {
             packet.reply("获取详细信息时失败，请重试。\n${e.localizedMessage}")
         }
