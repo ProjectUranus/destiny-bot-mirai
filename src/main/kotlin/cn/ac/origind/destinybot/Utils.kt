@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.DestinyBot.logger
 import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessageSubscribersBuilder
 import net.mamoe.mirai.message.MessageEvent
@@ -49,5 +50,17 @@ fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>
         content { text -> toCheck.any { text.contains(it, ignoreCase) } }
     } else {
         content { text -> containsSequence.any { text.contains(it, ignoreCase) } }
+    }
+}
+
+/**
+ * @throws RuntimeException
+ */
+inline fun <reified T> T?.orLogThrow(msg: String, e: Throwable? = null) : T {
+    if (this != null) return this
+    else {
+        val exception = e ?: NullPointerException()
+        logger.error(msg, exception)
+        throw RuntimeException(exception)
     }
 }

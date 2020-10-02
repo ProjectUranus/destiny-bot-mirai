@@ -3,7 +3,6 @@ package cn.ac.origind.uno
 import cn.ac.origind.destinybot.caseAny
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -16,7 +15,7 @@ import net.mamoe.mirai.message.data.buildMessageChain
 import java.io.InputStreamReader
 import java.util.function.Predicate
 
-val unoGameMap = Long2ObjectOpenHashMap<Desk>()
+val unoGameMap = hashMapOf<Long, Desk>()
 val Contact.unoGame get() = unoGameMap[this.id]
 lateinit var messages: JsonObject
 val messagesValues: List<String> by lazy { messages.entrySet().asSequence().flatMap { it.value.asJsonArray.asSequence() }.map { it.asJsonPrimitive.asString }.toList() }

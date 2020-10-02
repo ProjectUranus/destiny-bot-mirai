@@ -15,6 +15,7 @@ import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.minecraft.curseForgeCommands
 import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
+import cn.ac.origind.pricechallange.priceChallengeCommands
 import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
 import com.squareup.moshi.Moshi
@@ -32,7 +33,6 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
 import io.ktor.utils.io.core.Input
 import io.ktor.utils.io.core.readText
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -43,15 +43,19 @@ import net.mamoe.mirai.join
 import net.mamoe.mirai.message.MessageEvent
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.upload
+import okhttp3.Cache
+import okhttp3.OkHttpClient
 import org.bson.Document
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.findOne
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
 
@@ -71,7 +75,7 @@ object DestinyBot {
     val logger = LoggerFactory.getLogger("DestinyBot")
 
     // 用户在查询什么?
-    val userQuerys = ConcurrentHashMap<Long, QueryType>()
+    val userQueries = ConcurrentHashMap<Long, QueryType>()
 
     val config = Config {
         addSpec(AccountSpec)
@@ -129,10 +133,19 @@ object DestinyBot {
         }
     }
 
+    val okClient = OkHttpClient.Builder()
+        .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
+        .connectTimeout(2, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .callTimeout(2, TimeUnit.SECONDS)
+        .build()
+
     val mongoClient = KMongo.createClient()
     val db = mongoClient.getDatabase("destiny2")
-    val activities = Object2ObjectOpenHashMap<String, String>()
-    val lores = Object2ObjectOpenHashMap<String, String>()
+    val activities = hashMapOf<String, String>()
+    val lores = hashMapOf<String, String>()
 
     @ExperimentalStdlibApi
     @JvmStatic
@@ -144,10 +157,10 @@ object DestinyBot {
         initMinecraftVersion()
         withContext(Dispatchers.Default) {
             val collection = db.getCollection("DestinyActivityDefinition_chs")
-            activities.putAll(collection.find().map { it.get("displayProperties", Document::class.java)?.getString("name") to it.getString("_id") })
+            activities.putAll(collection.find().map { it.get("displayProperties", Document::class.java)?.getString("name")!! to it.getString("_id") })
 
             val loreCollection = db.getCollection("DestinyLoreDefinition_chs")
-            lores.putAll(loreCollection.find().map { it.get("displayProperties", Document::class.java)?.getString("name") to it.getString("_id") })
+            lores.putAll(loreCollection.find().map { it.get("displayProperties", Document::class.java)?.getString("name")!! to it.getString("_id") })
             println(activities.keys.toString())
         }
         bot.subscribeMessages()
@@ -214,6 +227,7 @@ object DestinyBot {
             unoGames()
             minecraftCommands()
             curseForgeCommands()
+            priceChallengeCommands()
         }
     }
 

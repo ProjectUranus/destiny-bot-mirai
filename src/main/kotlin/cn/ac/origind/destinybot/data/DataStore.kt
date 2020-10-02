@@ -1,7 +1,6 @@
 package cn.ac.origind.destinybot.data
 
 import cn.ac.origind.destinybot.moshi
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
@@ -10,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
-val users = Long2ObjectOpenHashMap<User>()
+val users = hashMapOf<Long, User>()
 val userAdapter = moshi.adapter(User::class.java)
 
 object DataStore {

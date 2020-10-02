@@ -2,9 +2,10 @@ package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot
 import cn.ac.origind.minecraft.response.ImmibisProject
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readText
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+
+const val urlRegex = "https?://(\\w+:?\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@\\-/]))?"
 
 suspend fun searchImmibis(criteria: String) : List<ImmibisProject> {
     val response = DestinyBot.client.get<HttpResponse>("https://fabricate.immibis.com/search?q=$criteria")
@@ -15,7 +16,7 @@ suspend fun searchImmibis(criteria: String) : List<ImmibisProject> {
     val gameVersionRegex = Regex("<p title=\"Version\">([.\\w]+)</p>")
     val categoryRegex = Regex("<div class=\"(\\w+)-badge result-badge\">")
     val authorRegex = Regex("<a class=\"result-author\" href=\"https://www.curseforge.com/members/.+\">(.+)</a></p>")
-    val urlRegex = Regex("<a class=\"result-name\" href=\"(https://(\\w+:?\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@\\-/]))?)\"><h2>(.+)</h2></a>")
+    val urlRegex = Regex("<a class=\"result-name\" href=\"(${urlRegex})\"><h2>(.+)</h2></a>")
 
     val html = resultsRegex.find(response.readText())?.groupValues?.get(1)!!
     return html.split("result gray-border rounded-border").drop(1).mapNotNull { resultText ->
