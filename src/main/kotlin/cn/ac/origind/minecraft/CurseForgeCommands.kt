@@ -7,12 +7,12 @@ fun MessagePacketSubscribersBuilder.curseForgeCommands() {
         reply(buildString {
             searchImmibis(it).forEachIndexed { index, mod ->
                 append("${index + 1}. ")
-                appendln(mod.name + " " + mod.url)
-                appendln("作者: ${mod.author}")
-                appendln("下载量: ${mod.downloads}")
-                appendln("创建时间: ${mod.createdTime}")
-                appendln("最后更新时间: ${mod.updatedTime}")
-                appendln()
+                appendLine(mod.name + " " + mod.url)
+                appendLine("作者: ${mod.author}")
+                appendLine("下载量: ${mod.downloads}")
+                appendLine("创建时间: ${mod.createdTime}")
+                appendLine("最后更新时间: ${mod.updatedTime}")
+                appendLine()
             }
         })
     }

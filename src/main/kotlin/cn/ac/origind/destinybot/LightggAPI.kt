@@ -1,10 +1,6 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.response.lightgg.*
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readText
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.litote.kmongo.findOne
@@ -33,9 +29,7 @@ suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO
 
 suspend fun getItemPerksInternal(itemId: String): ItemPerks {
     suspend fun request(): String {
-        val response = DestinyBot.client.get<HttpResponse>("https://www.light.gg/db/items/$itemId")
-        if (response.status == HttpStatusCode.NotFound || response.status == HttpStatusCode.InternalServerError) throw ItemNotFoundException(itemId)
-        else return response.readText()
+        return getBody("https://www.light.gg/db/items/$itemId")
     }
 
     val regex = Regex("<div class=\"clearfix perks\">(.+)<div id=\"my-rolls\">", RegexOption.DOT_MATCHES_ALL)

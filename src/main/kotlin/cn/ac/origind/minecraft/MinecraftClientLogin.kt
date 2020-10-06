@@ -10,14 +10,11 @@ import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandl
 import com.github.steveice10.packetlib.Client
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory
 import kotlinx.coroutines.*
-import kotlinx.io.ByteArrayInputStream
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.buildMessageChain
-import net.mamoe.mirai.message.upload
 import net.mamoe.mirai.utils.toExternalImage
 import net.mamoe.mirai.utils.upload
 import java.net.Proxy
-import javax.imageio.ImageIO
 
 
 object MinecraftClientLogin {

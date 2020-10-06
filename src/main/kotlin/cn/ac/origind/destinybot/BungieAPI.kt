@@ -1,18 +1,15 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.DestinyBot.client
 import cn.ac.origind.destinybot.exception.PlayerNotFoundException
 import cn.ac.origind.destinybot.response.bungie.*
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.network.sockets.ConnectTimeoutException
+import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
 
 const val endpoint = "https://www.bungie.net/Platform"
 const val key = "9654e41465f34fb6a7aea347abd5deeb"
 
-suspend fun getDestinyProfiles(membershipId: String, membershipType: Int) =
-    client.get<GetMembershipsResponse>("$endpoint/User/GetMembershipsById/$membershipId/$membershipType/") {
+suspend fun getDestinyProfiles(membershipId: String, membershipType: Int): UserMembershipData? =
+    getJson<GetMembershipsResponse>("$endpoint/User/GetMembershipsById/$membershipId/$membershipType/") {
         header("X-API-Key", key)
     }.Response
 
@@ -50,23 +47,23 @@ suspend fun searchUsersProfile(criteria: String) =
     }
 
 
-suspend fun searchUsersInternal(criteria: String) =
-    client.get<UserSearchResponse>("$endpoint/User/SearchUsers/?q=$criteria") {
+suspend fun searchUsersInternal(criteria: String): List<GeneralUser> =
+    getJson<UserSearchResponse>("$endpoint/User/SearchUsers/?q=$criteria") {
         header("X-API-Key", key)
     }.Response
 
 
-suspend fun searchProfiles(criteria: String) =
-    client.get<DestinyProfileSearchResponse>("$endpoint/Destiny2/SearchDestinyPlayer/TigerSteam/$criteria/ ") {
+suspend fun searchProfiles(criteria: String): List<DestinyMembershipQuery> =
+    getJson<DestinyProfileSearchResponse>("$endpoint/Destiny2/SearchDestinyPlayer/TigerSteam/$criteria/ ") {
         header("X-API-Key", key)
     }.Response
 
-suspend fun getProfile(membershipType: Int, membershipId: String) =
-    client.get<DestinyProfileResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/?components=Profiles%2CCharacters%2CProfileCurrencies") {
+suspend fun getProfile(membershipType: Int, membershipId: String): DestinyProfile? =
+    getJson<DestinyProfileResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/?components=Profiles%2CCharacters%2CProfileCurrencies") {
         header("X-API-Key", key)
     }.Response
 
-suspend fun getCharacter(membershipType: Int, membershipId: String, characterId: String) =
-    client.get<DestinyCharacterResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/Character/${characterId}/?components=Characters%2CCharacterInventories%2CCharacterEquipment%2CItemPerks") {
+suspend fun getCharacter(membershipType: Int, membershipId: String, characterId: String): DestinyCharacterResponseComponent? =
+    getJson<DestinyCharacterResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/Character/${characterId}/?components=Characters%2CCharacterInventories%2CCharacterEquipment%2CItemPerks") {
         header("X-API-Key", key)
     }.Response

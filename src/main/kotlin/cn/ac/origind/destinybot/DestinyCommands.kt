@@ -9,39 +9,40 @@ import cn.ac.origind.destinybot.exception.WeaponNotFoundException
 import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.image.getImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
-import io.ktor.client.features.ServerResponseException
-import io.ktor.network.sockets.ConnectTimeoutException
+import io.ktor.client.features.*
+import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.set
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
 fun MessagePacketSubscribersBuilder.destinyCommands() {
     content(caseAny("/ds help", "/dshelp", "/help").filter).reply {
         buildString {
-            appendln("欢迎使用 LG 的命运2小帮手机器人 555EX780+1GGWP 版。")
-            appendln("获取该帮助: /ds help, /dshelp, /help")
-            appendln("帮助的帮助: 带<>的为必填内容, []为选填内容")
-            appendln("命运2命令:")
-            appendln("“传奇故事” 或 <传奇故事的名称>: 获取一个随机或特定的传奇故事")
-            appendln("perk<武器>: 在 light.gg 上获取武器 Perk 信息")
-            appendln("/ds search <用户名>: 搜索一名命运2玩家")
-            appendln("/tracker <用户名>: 在 Destiny Tracker 上搜索一名玩家")
-            appendln("绑定 <搜索结果前的序号|玩家ID>: 绑定你的命运2账户到QQ号")
-            appendln("我的信息: 若绑定命运2账户则显示玩家信息")
-            appendln()
-            appendln("Minecraft 命令:")
-            appendln("/<MC版本, 去掉.> 如/1710: 显示你在玩的MC版本有多远古")
-            appendln("/latest: 显示最新 Minecraft 快照信息")
-            appendln("/release: 显示最新 Minecraft 信息")
-            appendln("/ping: 显示 Origind 服务器信息")
-            appendln("/ping <原版/origind/gtnhhard/goodtime/咕咕time>: 显示其他的服务器信息")
-            appendln("/ping <服务器地址>: 显示你指定的服务器信息, 暂不支持 SRV 记录")
-            appendln()
-            appendln("WIP: 斗地主功能和UNO功能 未实现")
+            appendLine("欢迎使用 LG 的命运2小帮手机器人 555EX780+1GGWP 版。")
+            appendLine("获取该帮助: /ds help, /dshelp, /help")
+            appendLine("帮助的帮助: 带<>的为必填内容, []为选填内容")
+            appendLine("命运2命令:")
+            appendLine("“传奇故事” 或 <传奇故事的名称>: 获取一个随机或特定的传奇故事")
+            appendLine("perk<武器>: 在 light.gg 上获取武器 Perk 信息")
+            appendLine("/ds search <用户名>: 搜索一名命运2玩家")
+            appendLine("/tracker <用户名>: 在 Destiny Tracker 上搜索一名玩家")
+            appendLine("绑定 <搜索结果前的序号|玩家ID>: 绑定你的命运2账户到QQ号")
+            appendLine("我的信息: 若绑定命运2账户则显示玩家信息")
+            appendLine()
+            appendLine("Minecraft 命令:")
+            appendLine("/<MC版本, 去掉.> 如/1710: 显示你在玩的MC版本有多远古")
+            appendLine("/latest: 显示最新 Minecraft 快照信息")
+            appendLine("/release: 显示最新 Minecraft 信息")
+            appendLine("/ping: 显示 Origind 服务器信息")
+            appendLine("/ping <原版/origind/gtnhhard/goodtime/咕咕time>: 显示其他的服务器信息")
+            appendLine("/ping <服务器地址>: 显示你指定的服务器信息, 暂不支持 SRV 记录")
+            appendLine()
+            appendLine("WIP: 斗地主功能和UNO功能 未实现")
             append("如有任何问题[想被LG喷一顿] 请@你群中的LG")
         }
     }
@@ -173,12 +174,12 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             }.joinAll()
             profileQuerys[packet.sender.id] = players.toList()
             packet.reply(buildString {
-                appendln("搜索到玩家: ")
+                appendLine("搜索到玩家: ")
                 players.forEachIndexed { index, profile ->
-                    appendln("${index + 1}. ${profile.displayName}: ...${profile.membershipId.takeLast(3)}")
+                    appendLine("${index + 1}. ${profile.displayName}: ...${profile.membershipId.takeLast(3)}")
                 }
-                appendln("请直接回复前面的序号来获取详细信息。")
-                appendln("或者，回复 绑定 [序号] 来将该用户绑定到你的 QQ 上。")
+                appendLine("请直接回复前面的序号来获取详细信息。")
+                appendLine("或者，回复 绑定 [序号] 来将该用户绑定到你的 QQ 上。")
             })
         }
     }

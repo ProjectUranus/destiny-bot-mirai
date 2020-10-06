@@ -1,14 +1,12 @@
 package cn.ac.origind.minecraft
 
-import cn.ac.origind.destinybot.DestinyBot
+import cn.ac.origind.destinybot.getBody
 import cn.ac.origind.minecraft.response.ImmibisProject
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 
 const val urlRegex = "https?://(\\w+:?\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@\\-/]))?"
 
 suspend fun searchImmibis(criteria: String) : List<ImmibisProject> {
-    val response = DestinyBot.client.get<HttpResponse>("https://fabricate.immibis.com/search?q=$criteria")
+    val response = getBody("https://fabricate.immibis.com/search?q=$criteria")
     val resultsRegex = Regex("<div id=\"results\" class=\"results\">(.+)<div class=\"versions\">", RegexOption.DOT_MATCHES_ALL)
     val downloadsRegex = Regex("<p title=\"Downloads\">([.\\w]+)</p>")
     val createdRegex = Regex("<p title=\"Created\">([-\\w]+)</p>")
@@ -18,7 +16,7 @@ suspend fun searchImmibis(criteria: String) : List<ImmibisProject> {
     val authorRegex = Regex("<a class=\"result-author\" href=\"https://www.curseforge.com/members/.+\">(.+)</a></p>")
     val urlRegex = Regex("<a class=\"result-name\" href=\"(${urlRegex})\"><h2>(.+)</h2></a>")
 
-    val html = resultsRegex.find(response.readText())?.groupValues?.get(1)!!
+    val html = resultsRegex.find(response)?.groupValues?.get(1)!!
     return html.split("result gray-border rounded-border").drop(1).mapNotNull { resultText ->
         try {
             val downloads = downloadsRegex.find(resultText)?.groupValues?.get(1)!!

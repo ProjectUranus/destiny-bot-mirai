@@ -1,13 +1,13 @@
 package cn.ac.origind.destinybot.image
 
 import cn.ac.origind.destinybot.DestinyBot
-import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.Image
 import net.mamoe.mirai.utils.toExternalImage
 import net.mamoe.mirai.utils.upload
+import okhttp3.Request
 import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -33,7 +33,14 @@ suspend fun getImage(icon: String): BufferedImage = withContext(Dispatchers.IO) 
         return@withContext ImageIO.read(path.toFile())
     }
 
-    Files.write(path, DestinyBot.client.get<ByteArray>(if (icon.startsWith("http")) icon else "https://www.bungie.net$icon"), StandardOpenOption.WRITE, StandardOpenOption.CREATE)
+
+    val request = Request.Builder().apply {
+        url(if (icon.startsWith("http")) icon else "https://www.bungie.net$icon")
+    }.build()
+
+    val response = DestinyBot.okClient.newCall(request).execute()
+    Files.write(path, response.body?.bytes()!!, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
+
     return@withContext ImageIO.read(path.toFile())
 }
 

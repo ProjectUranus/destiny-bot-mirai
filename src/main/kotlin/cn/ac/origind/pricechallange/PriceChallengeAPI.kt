@@ -1,23 +1,10 @@
 package cn.ac.origind.pricechallange
 
-import cn.ac.origind.destinybot.DestinyBot
-import cn.ac.origind.destinybot.DestinyBot.okClient
+import cn.ac.origind.destinybot.getBody
 import cn.ac.origind.minecraft.urlRegex
-import io.ktor.client.request.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
-import okhttp3.Request
 import java.time.Instant
-
-suspend fun getBody(url: String) = withContext(Dispatchers.IO) {
-    val request = Request.Builder().apply {
-        url(url)
-    }.build()
-    val response = okClient.newCall(request)
-    response.execute().body?.string() ?: ""
-}
 
 /**
  * 搜索比价产品
@@ -33,9 +20,7 @@ suspend fun searchChallengeProduct(product: String): Flow<PriceAtDate> {
  * 搜索优惠券
  */
 suspend fun searchPromotionProduct(product: String) {
-    val response = DestinyBot.client.get<String>("http://zhekou.manmanbuy.com/searchnew.aspx") {
-        parameter("key", product)
-    }
+    val response = getBody("http://zhekou.manmanbuy.com/searchnew.aspx?key=$product")
 }
 
 suspend fun getHistoricalPrice(link: String) = flow {

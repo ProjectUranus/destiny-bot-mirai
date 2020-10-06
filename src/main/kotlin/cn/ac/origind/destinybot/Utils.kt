@@ -1,9 +1,12 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.DestinyBot.logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessageSubscribersBuilder
 import net.mamoe.mirai.message.MessageEvent
+import okhttp3.Request
 
 @MessageDsl
 fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
@@ -63,4 +66,22 @@ inline fun <reified T> T?.orLogThrow(msg: String, e: Throwable? = null) : T {
         logger.error(msg, exception)
         throw RuntimeException(exception)
     }
+}
+
+suspend inline fun getBody(url: String, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
+    val request = Request.Builder().apply {
+        url(url)
+        init()
+    }.build()
+    val response = DestinyBot.okClient.newCall(request)
+    response.execute().body?.string() ?: ""
+}
+
+suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
+    val request = Request.Builder().apply {
+        url(url)
+        init()
+    }.build()
+    val response = DestinyBot.okClient.newCall(request)
+    moshi.adapter(T::class.java).fromJson(response.execute().body?.string())!!
 }

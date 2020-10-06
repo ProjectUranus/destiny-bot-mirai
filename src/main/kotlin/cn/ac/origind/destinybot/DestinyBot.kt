@@ -10,7 +10,6 @@ import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
-import cn.ac.origind.destinybot.response.lightgg.PerkType
 import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.minecraft.curseForgeCommands
 import cn.ac.origind.minecraft.initMinecraftVersion
@@ -21,18 +20,7 @@ import cn.ac.origind.uno.unoGames
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.uchuhimo.konf.Config
-import io.ktor.client.HttpClient
-import io.ktor.client.call.TypeInfo
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.engine.cio.endpoint
-import io.ktor.client.features.ServerResponseException
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.JsonSerializer
-import io.ktor.http.ContentType
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.TextContent
-import io.ktor.utils.io.core.Input
-import io.ktor.utils.io.core.readText
+import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -88,58 +76,14 @@ object DestinyBot {
     } }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault());
-
-    val client = HttpClient(CIO) {
-        install(JsonFeature) {
-            serializer = object : JsonSerializer {
-                private val backend = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-
-                override fun read(type: TypeInfo, body: Input): Any {
-                    val text = body.readText()
-                    return backend.adapter<Any>(type.reifiedType).fromJson(text)!!
-                }
-
-                override fun write(data: Any, contentType: ContentType): OutgoingContent =
-                    TextContent(backend.adapter(data.javaClass).toJson(data), contentType)
-            }
-        }
-        engine {
-            endpoint {
-                /**
-                 * Maximum number of requests for a specific endpoint route.
-                 */
-                maxConnectionsPerRoute = 100
-
-                /**
-                 * Max size of scheduled requests per connection(pipeline queue size).
-                 */
-                pipelineMaxSize = 20
-
-                /**
-                 * Max number of milliseconds to keep iddle connection alive.
-                 */
-                keepAliveTime = 5000
-
-                /**
-                 * Number of milliseconds to wait trying to connect to the server.
-                 */
-                connectTimeout = 2000
-
-                /**
-                 * Maximum number of attempts for retrying a connection.
-                 */
-                connectRetryAttempts = 2
-            }
-        }
-    }
-
     val okClient = OkHttpClient.Builder()
         .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
-        .connectTimeout(2, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .followRedirects(true)
         .followSslRedirects(true)
-        .callTimeout(2, TimeUnit.SECONDS)
+        .callTimeout(10, TimeUnit.SECONDS)
         .build()
 
     val mongoClient = KMongo.createClient()
@@ -165,7 +109,6 @@ object DestinyBot {
         }
         bot.subscribeMessages()
         bot.join()
-        client.close()
         bot.close()
     }
 
@@ -184,7 +127,7 @@ object DestinyBot {
                 doc?.get("displayProperties", Document::class.java)?.getString("description") ?: ""
             }
             content { str -> str.startsWith("传奇故事 ") && lores.containsKey(str.removePrefix("传奇故事 ")) }.reply {
-                if (it.isNullOrEmpty()) return@reply Unit
+                if (it.isEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyLoreDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${lores[it.removePrefix("传奇故事 ")]}"}""")
                 val displayProperties = doc?.get("displayProperties", Document::class.java)
@@ -214,9 +157,9 @@ object DestinyBot {
                         return@launch
                     }
                     packet.reply(buildString {
-                        appendln("搜索到玩家: ")
+                        appendLine("搜索到玩家: ")
                         result.forEachIndexed { index, profile ->
-                            appendln("${index + 1}. ${profile.platformUserHandle}: https://destinytracker.com/destiny-2/profile/${profile.platformSlug}/${profile.platformUserIdentifier}/overview")
+                            appendLine("${index + 1}. ${profile.platformUserHandle}: https://destinytracker.com/destiny-2/profile/${profile.platformSlug}/${profile.platformUserIdentifier}/overview")
                         }
                     })
                 }
@@ -234,28 +177,24 @@ object DestinyBot {
     suspend fun replyPerks(item: ItemDefinition, perks: ItemPerks, packet: MessageEvent) {
         packet.reply(item.toImage(perks).upload(packet.subject))
         packet.reply(buildMessageChain {
-            val barrels = perks.all.filter { it.type == PerkType.BARREL }
-            val magazines = perks.all.filter { it.type == PerkType.MAGAZINE }
-            val perk1 = perks.all.filter { it.type == PerkType.PERK1 }
-            val perk2 = perks.all.filter { it.type == PerkType.PERK2 }
             add(buildString {
-                appendln("信息来自 light.gg")
-                appendln(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
-                appendln(item.displayProperties?.description)
-                appendln()
+                appendLine("信息来自 light.gg")
+                appendLine(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
+                appendLine(item.displayProperties?.description)
+                appendLine()
                 append("官Roll(可能不掉落): ")
-                appendln(perks.curated.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                appendLine(perks.curated.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
                 if (perks.favorite.isNotEmpty()) {
                     append("社区精选 Perk: ")
-                    appendln(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                    appendLine(perks.favorite.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
                 }
                 if (perks.pvp.isNotEmpty()) {
                     append("PvP Perk: ")
-                    appendln(perks.pvp.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                    appendLine(perks.pvp.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
                 }
                 if (perks.pve.isNotEmpty()) {
                     append("PvE Perk: ")
-                    appendln(perks.pve.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
+                    appendLine(perks.pve.joinToString(separator = ", ") { it.displayProperties?.name.toString() })
                 }
                 if (perks.normal.isNotEmpty()) {
                     append("其他 Perk: ")
@@ -270,8 +209,8 @@ object DestinyBot {
     suspend fun replyProfile(membershipType: Int, membershipId: String, packet: MessageEvent) {
         try {
             packet.reply(buildString {
-                appendln("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
-                appendln("Braytech: https://braytech.org/3/${membershipId}")
+                appendLine("Tracker: https://destinytracker.com/destiny-2/profile/steam/${membershipId}/overview")
+                appendLine("Braytech: https://braytech.org/3/${membershipId}")
                 append("Raid 报告: https://raid.report/pc/${membershipId}")
             })
             val profile = withContext(Dispatchers.IO) { getProfile(3, membershipId) }
@@ -279,8 +218,8 @@ object DestinyBot {
                 packet.reply("获取详细信息时失败，请重试。")
             val userProfile = profile?.profile?.data?.userInfo
             packet.reply(buildString {
-                appendln("玩家: ${userProfile?.displayName}")
-                appendln("ID: ${userProfile?.membershipId}")
+                appendLine("玩家: ${userProfile?.displayName}")
+                appendLine("ID: ${userProfile?.membershipId}")
             })
             val perks = mutableListOf<Pair<String, DestinyItemPerksComponent>>()
             val perkCollection = db.getCollection("DestinySandboxPerkDefinition_chs")
@@ -288,11 +227,11 @@ object DestinyBot {
                 profile?.characters?.data?.map { (id, character) ->
                     /*
                     val detail = getCharacter(membershipType, membershipId, id)
-                    appendln("角色 $id：")
-                    appendln("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
-                    appendln("光等: ${character.light}")
-                    appendln("最后上线时间: ${formatter.format(Instant.parse(character.dateLastPlayed))}")
-                    appendln("总游戏时间: ${character.minutesPlayedTotal}分钟")
+                    appendLine("角色 $id：")
+                    appendLine("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
+                    appendLine("光等: ${character.light}")
+                    appendLine("最后上线时间: ${formatter.format(Instant.parse(character.dateLastPlayed))}")
+                    appendLine("总游戏时间: ${character.minutesPlayedTotal}分钟")
                     if (detail != null) {
                         detail.equipment.data?.items?.forEachIndexed { index, it ->
                             val document = itemDefinitionCollection.findOne("""{"_id":"${it.itemHash}"}""")
@@ -304,7 +243,7 @@ object DestinyBot {
                             append(" ")
                         }
                     }
-                    appendln()
+                    appendLine()
                      */
                     character
                 }?.toImage()!!
@@ -318,7 +257,7 @@ object DestinyBot {
                         append(document?.get("displayProperties", Document::class.java)?.getString("name") ?: "")
                         append(" ")
                     }
-                    appendln()
+                    appendLine()
                 }
             })*/
         } catch (e: ServerResponseException) {
