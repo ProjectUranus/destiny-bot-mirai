@@ -1,8 +1,8 @@
 package cn.ac.origind.destinybot.response.bungie
 
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonInclude
 
-@Serializable
+@JsonInclude
 open class BungieMultiResponse<T> : DestinyMessageResponse() {
     var Response: List<T> = emptyList()
     override fun toString(): String {

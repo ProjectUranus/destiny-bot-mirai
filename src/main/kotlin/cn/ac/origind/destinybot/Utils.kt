@@ -73,15 +73,15 @@ suspend inline fun getBody(url: String, crossinline init: Request.Builder.() -> 
         url(url)
         init()
     }.build()
-    val response = DestinyBot.okClient.newCall(request)
+    val response = client.newCall(request)
     response.execute().body?.string() ?: ""
 }
 
-suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
+suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Builder.() -> Unit = {}): T = withContext(Dispatchers.IO) {
     val request = Request.Builder().apply {
         url(url)
         init()
     }.build()
-    val response = DestinyBot.okClient.newCall(request)
-    moshi.adapter(T::class.java).fromJson(response.execute().body?.string())!!
+    val response = client.newCall(request)
+    mapper.readValue(response.execute().body?.string()!!, T::class.java)
 }

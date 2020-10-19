@@ -4,7 +4,7 @@ import cn.ac.origind.destinybot.DestinyBot
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.Lore
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
-import cn.ac.origind.destinybot.moshi
+import cn.ac.origind.destinybot.mapper
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.searchToWeaponMap
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ suspend fun searchItemDefinitions(displayName: String): List<ItemDefinition> {
     if (documents.isEmpty()) throw WeaponNotFoundException("无法找到该物品，请检查你的内容并用简体中文译名搜索。")
     else {
         return documents.map { document ->
-            withContext(Dispatchers.IO) { moshi.adapter(ItemDefinition::class.java).fromJson(document.toJson())!! }
+            withContext(Dispatchers.IO) { mapper.readValue(document.toJson(), ItemDefinition::class.java) }
         }
     }
 }

@@ -1,14 +1,12 @@
 package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
-import cn.ac.origind.destinybot.moshi
+import cn.ac.origind.destinybot.mapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
 import net.mamoe.mirai.message.data.PlainText
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 import java.time.*
 
 data class LatestManifest(var release: String? = null, var snapshot: String? = null)
@@ -20,7 +18,7 @@ lateinit var versionManifest: MinecraftVersionManifest
 lateinit var versionMap: Map<String, Version>
 
 suspend fun initMinecraftVersion() {
-    versionManifest = withContext(Dispatchers.IO) { moshi.adapter(MinecraftVersionManifest::class.java).fromJson(Files.readString(Paths.get("version_manifest.json"), StandardCharsets.UTF_8))!! }
+    versionManifest = withContext(Dispatchers.IO) { mapper.readValue(File("version_manifest.json"), MinecraftVersionManifest::class.java) }
     versionMap = versionManifest.versions?.map { "/" + it.id!!.replace(".", "") to it }?.toMap() ?: emptyMap()
 }
 

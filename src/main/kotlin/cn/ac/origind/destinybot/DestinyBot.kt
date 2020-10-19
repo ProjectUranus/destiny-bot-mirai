@@ -6,8 +6,8 @@ import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.QueryType
-import cn.ac.origind.destinybot.response.bungie.DestinyItemPerksComponent
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
+import cn.ac.origind.destinybot.response.bungie.DestinyProfile
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.minecraft.MinecraftSpec
@@ -17,8 +17,8 @@ import cn.ac.origind.minecraft.minecraftCommands
 import cn.ac.origind.pricechallange.priceChallengeCommands
 import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.uchuhimo.konf.Config
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +31,7 @@ import net.mamoe.mirai.join
 import net.mamoe.mirai.message.MessageEvent
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.upload
+import net.mamoe.mirai.utils.toExternalImage
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.bson.Document
@@ -46,13 +47,24 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.system.measureTimeMillis
 
 
 val races = arrayOf("人类", "觉醒者", "EXO", "未知")
 val classes = arrayOf("泰坦", "猎人", "术士", "未知")
 val genders = arrayOf("男", "女", "未知")
 
-val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+val client = OkHttpClient.Builder()
+    .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(10, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(true)
+    .followRedirects(true)
+    .followSslRedirects(true)
+    .callTimeout(10, TimeUnit.SECONDS)
+    .build()
 
 object DestinyBot {
     init {
@@ -70,26 +82,18 @@ object DestinyBot {
         addSpec(MinecraftSpec)
         addSpec(DictSpec)
         addSpec(AppSpec)
-    }.from.json.watchFile("config.json", delayTime = 10)
+    }.from.json.watchFile("config.json", delayTime = 15)
     val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) {
         fileBasedDeviceInfo()
     } }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault());
-    val okClient = OkHttpClient.Builder()
-        .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .followRedirects(true)
-        .followSslRedirects(true)
-        .callTimeout(10, TimeUnit.SECONDS)
-        .build()
 
     val mongoClient = KMongo.createClient()
     val db = mongoClient.getDatabase("destiny2")
     val activities = hashMapOf<String, String>()
     val lores = hashMapOf<String, String>()
+    val server = DestinyBotServer()
 
     @ExperimentalStdlibApi
     @JvmStatic
@@ -213,41 +217,46 @@ object DestinyBot {
                 appendLine("Braytech: https://braytech.org/3/${membershipId}")
                 append("Raid 报告: https://raid.report/pc/${membershipId}")
             })
-            val profile = withContext(Dispatchers.IO) { getProfile(3, membershipId) }
+            val profile = withContext(Dispatchers.IO) {
+                val ret: DestinyProfile?
+                logger.debug("获取个人信息花费了 " + measureTimeMillis {
+                    ret = getProfile(3, membershipId)
+                } + "ms")
+                return@withContext ret
+            }
             if (profile == null)
                 packet.reply("获取详细信息时失败，请重试。")
             val userProfile = profile?.profile?.data?.userInfo
-            packet.reply(buildString {
-                appendLine("玩家: ${userProfile?.displayName}")
-                appendLine("ID: ${userProfile?.membershipId}")
+            packet.reply(buildMessageChain {
+                add("玩家: ${userProfile?.displayName}\n")
+                add("ID: ${userProfile?.membershipId}\n")
+                add(packet.subject.uploadImage(profile?.characters?.data?.map { (id, character) ->
+                    character
+                }?.toImage()?.toExternalImage()!!))
             })
+
+            /*
             val perks = mutableListOf<Pair<String, DestinyItemPerksComponent>>()
             val perkCollection = db.getCollection("DestinySandboxPerkDefinition_chs")
-            packet.sendImage(
-                profile?.characters?.data?.map { (id, character) ->
-                    /*
-                    val detail = getCharacter(membershipType, membershipId, id)
-                    appendLine("角色 $id：")
-                    appendLine("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
-                    appendLine("光等: ${character.light}")
-                    appendLine("最后上线时间: ${formatter.format(Instant.parse(character.dateLastPlayed))}")
-                    appendLine("总游戏时间: ${character.minutesPlayedTotal}分钟")
-                    if (detail != null) {
-                        detail.equipment.data?.items?.forEachIndexed { index, it ->
-                            val document = itemDefinitionCollection.findOne("""{"_id":"${it.itemHash}"}""")
-                            val name = document?.get("displayProperties", Document::class.java)?.getString("name") ?: ""
-                            if (detail.itemComponents.perks.data?.contains(it.itemInstanceId) == true) {
-                                perks += name to (detail.itemComponents.perks.data?.get(it.itemInstanceId) as DestinyItemPerksComponent)
-                            }
-                            append(name)
-                            append(" ")
-                        }
+            val detail = getCharacter(membershipType, membershipId, id)
+            appendLine("角色 $id：")
+            appendLine("${classes[character.classType]} ${races[character.raceType]} ${genders[character.genderType]}")
+            appendLine("光等: ${character.light}")
+            appendLine("最后上线时间: ${formatter.format(Instant.parse(character.dateLastPlayed))}")
+            appendLine("总游戏时间: ${character.minutesPlayedTotal}分钟")
+            if (detail != null) {
+                detail.equipment.data?.items?.forEachIndexed { index, it ->
+                    val document = itemDefinitionCollection.findOne("""{"_id":"${it.itemHash}"}""")
+                    val name = document?.get("displayProperties", Document::class.java)?.getString("name") ?: ""
+                    if (detail.itemComponents.perks.data?.contains(it.itemInstanceId) == true) {
+                        perks += name to (detail.itemComponents.perks.data?.get(it.itemInstanceId) as DestinyItemPerksComponent)
                     }
-                    appendLine()
-                     */
-                    character
-                }?.toImage()!!
-            )
+                    append(name)
+                    append(" ")
+                }
+            }
+            appendLine()
+             */
             /*
             packet.reply(buildString {
                 for ((name, perkList) in perks) {

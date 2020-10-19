@@ -1,5 +1,8 @@
 package cn.ac.origind.destinybot.data
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
+@JsonInclude
 data class User(
     var qq: Long = -1L,
     var bungieMembershipId: String? = "",

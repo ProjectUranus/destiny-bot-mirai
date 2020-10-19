@@ -1,10 +1,10 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.response.lightgg.*
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.litote.kmongo.findOne
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -18,11 +18,11 @@ suspend fun getItemPerks(itemId: String): ItemPerks = withContext(Dispatchers.IO
 
     if (Files.notExists(dir)) Files.createDirectories(dir)
     if (Files.exists(path)) {
-        return@withContext moshi.adapter(Item::class.java).fromJson(String(Files.readAllBytes(path), StandardCharsets.UTF_8))?.perks!!
+        return@withContext mapper.readValue(path.toFile(), Item::class.java).perks!!
     } else {
         val perks = getItemPerksInternal(itemId)
-        val itemDefJson = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_chs").findOne("""{"hash": $itemId}""")?.toJson()
-        Files.write(path, moshi.adapter(Item::class.java).toJson(Item(perks, moshi.adapter(ItemDefinition::class.java).fromJson(itemDefJson))).toByteArray(StandardCharsets.UTF_8))
+        val itemDefinition = Database.getItemDefinition(itemId)
+        Files.write(path, mapper.writeValueAsBytes(Item(perks, itemDefinition)))
         return@withContext perks
     }
 }
@@ -55,13 +55,11 @@ suspend fun getItemPerksInternal(itemId: String): ItemPerks {
             ?.toJson()
         val itemJson = itemsCollection.findOne("""{"hash": $hash}""")
             ?.toJson()
-        val perk = moshi.adapter(ItemPerk::class.java).fromJson(itemJson ?: perkJson)
-        if (perk != null) {
-            perk.type = when (perk.itemTypeDisplayName) {
-                "枪管" -> PerkType.BARREL
-                "弹匣" -> PerkType.MAGAZINE
-                else -> null
-            }
+        val perk = mapper.readValue<ItemPerk>(itemJson ?: perkJson ?: "")
+        perk.type = when (perk.itemTypeDisplayName) {
+            "枪管" -> PerkType.BARREL
+            "弹匣" -> PerkType.MAGAZINE
+            else -> null
         }
         return perk
     }

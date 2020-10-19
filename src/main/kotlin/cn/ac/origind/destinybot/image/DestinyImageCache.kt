@@ -1,6 +1,6 @@
 package cn.ac.origind.destinybot.image
 
-import cn.ac.origind.destinybot.DestinyBot
+import cn.ac.origind.destinybot.client
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Contact
@@ -38,7 +38,7 @@ suspend fun getImage(icon: String): BufferedImage = withContext(Dispatchers.IO) 
         url(if (icon.startsWith("http")) icon else "https://www.bungie.net$icon")
     }.build()
 
-    val response = DestinyBot.okClient.newCall(request).execute()
+    val response = client.newCall(request).execute()
     Files.write(path, response.body?.bytes()!!, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
 
     return@withContext ImageIO.read(path.toFile())

@@ -27,6 +27,8 @@
         </encoder>
     </appender>
 
+    <appender name="group" class="cn.ac.origind.destinybot.MiraiLoggerAdapter" />
+
     <appender name="errorFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>error</level>
@@ -40,6 +42,10 @@
             <pattern>[%d{HH:mm:ss}] [%t/%level]: %msg%n</pattern>
         </encoder>
     </appender>
+
+    <root level="debug">
+        <appender-ref ref="group"/>
+    </root>
 
     <root level="info">
         <appender-ref ref="stdout" />

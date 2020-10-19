@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.DestinyBot.logger
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.data.User
 import cn.ac.origind.destinybot.data.users
@@ -17,6 +18,7 @@ import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
+import kotlin.system.measureTimeMillis
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
@@ -127,8 +129,10 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         for (item in searchItemDefinitions(it)) {
             GlobalScope.launch(Dispatchers.Default) {
                 try {
-                    val perks = getItemPerks(item._id!!)
-                    DestinyBot.replyPerks(item, perks, this@startsWith)
+                    logger.debug("搜索 Perk 花费了 " + measureTimeMillis {
+                        val perks = getItemPerks(item._id!!)
+                        DestinyBot.replyPerks(item, perks, this@startsWith)
+                    } + "ms")
                 } catch (e: WeaponNotFoundException) {
                     reply(e.message ?: "")
                 } catch (e: ItemNotFoundException) {
