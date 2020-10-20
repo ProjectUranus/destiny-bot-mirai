@@ -27,7 +27,7 @@
         </encoder>
     </appender>
 
-    <appender name="group" class="cn.ac.origind.destinybot.MiraiLoggerAdapter" />
+    <!--<appender name="group" class="cn.ac.origind.destinybot.MiraiLoggerAdapter" />-->
 
     <appender name="errorFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">

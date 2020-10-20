@@ -1,8 +1,8 @@
 package cn.ac.origind.destinybot.response.bungie
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.squareup.moshi.JsonClass
 
-@JsonInclude
+@JsonClass(generateAdapter = true)
 open class SingleResponse<T> : DestinyMessageResponse() {
     var Response: T? = null
     override fun toString(): String {
@@ -10,4 +10,5 @@ open class SingleResponse<T> : DestinyMessageResponse() {
     }
 }
 
+@JsonClass(generateAdapter = true)
 data class PrivacyData<T>(var data: T? = null, var privacy: Int = 1)

@@ -67,3 +67,9 @@ suspend fun getCharacter(membershipType: Int, membershipId: String, characterId:
     getJson<DestinyCharacterResponse>("$endpoint/Destiny2/${membershipType}/Profile/${membershipId}/Character/${characterId}/?components=Characters%2CCharacterInventories%2CCharacterEquipment%2CItemPerks") {
         header("X-API-Key", key)
     }.Response
+
+suspend fun getMembershipFromHardLinkedCredential(credential: String, crType: String = "SteamId"): DestinyMembershipQuery? =
+    getJson<DestinyMembershipQueryResponse>("$endpoint/User/GetMembershipFromHardLinkedCredential/${crType}/${credential}/") {
+        header("X-API-Key", key)
+    }.Response
+

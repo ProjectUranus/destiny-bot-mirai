@@ -1,8 +1,8 @@
 package cn.ac.origind.destinybot.response.bungie
 
-import kotlinx.serialization.Serializable
+import com.squareup.moshi.JsonClass
 
-@Serializable
+@JsonClass(generateAdapter = true)
 open class DestinyMessageResponse {
     var ErrorCode: Int = 1
     var ThrottleSeconds: Int = 0

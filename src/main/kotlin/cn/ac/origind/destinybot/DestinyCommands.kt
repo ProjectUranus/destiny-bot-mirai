@@ -1,6 +1,5 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.DestinyBot.logger
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.data.User
 import cn.ac.origind.destinybot.data.users
@@ -18,7 +17,6 @@ import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
-import kotlin.system.measureTimeMillis
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
@@ -35,6 +33,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             appendLine("/tracker <用户名>: 在 Destiny Tracker 上搜索一名玩家")
             appendLine("绑定 <搜索结果前的序号|玩家ID>: 绑定你的命运2账户到QQ号")
             appendLine("我的信息: 若绑定命运2账户则显示玩家信息")
+            appendLine("/j <队伍码>: 用队伍码(SteamID64)查询你的棒鸡用户ID和个人信息")
             appendLine()
             appendLine("Minecraft 命令:")
             appendLine("/<MC版本, 去掉.> 如/1710: 显示你在玩的MC版本有多远古")
@@ -129,10 +128,8 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         for (item in searchItemDefinitions(it)) {
             GlobalScope.launch(Dispatchers.Default) {
                 try {
-                    logger.debug("搜索 Perk 花费了 " + measureTimeMillis {
-                        val perks = getItemPerks(item._id!!)
-                        DestinyBot.replyPerks(item, perks, this@startsWith)
-                    } + "ms")
+                    val perks = getItemPerks(item._id!!)
+                    DestinyBot.replyPerks(item, perks, this@startsWith)
                 } catch (e: WeaponNotFoundException) {
                     reply(e.message ?: "")
                 } catch (e: ItemNotFoundException) {
@@ -143,8 +140,36 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             }
         }
     }
+    matching(Regex("/j \\d+")) {
+        val id = message[PlainText]!!.content.removePrefix("/j ")
+        val query = getMembershipFromHardLinkedCredential(id)
+        if (query == null) {
+            reply("没有找到用户，请检查你的输入。")
+            return@matching
+        }
+        DestinyBot.replyProfile(query.membershipType, query.membershipId, this)
+    }
+    matching(Regex("/你给翻译翻译 \\d+")) {
+        val id = message[PlainText]!!.content.removePrefix("/你给翻译翻译 ")
+        val query = getMembershipFromHardLinkedCredential(id)
+        if (query == null) {
+            reply("你不叫马邦德，我叫马邦德")
+            return@matching
+        }
+        reply("好嘞。\n你的棒鸡ID：${query.membershipId}")
+    }
     matching(Regex("/ds \\d+")) {
-        DestinyBot.replyProfile(3, message[PlainText]!!.content.removePrefix("/ds "), this)
+        val id = message[PlainText]!!.content.removePrefix("/ds ")
+        if (id.startsWith("765")) {
+            val query = getMembershipFromHardLinkedCredential(id)
+            if (query == null) {
+                reply("没有找到用户，请检查你的输入。")
+                return@matching
+            }
+            DestinyBot.replyProfile(query.membershipType, query.membershipId, this)
+        } else {
+            DestinyBot.replyProfile(3, id, this)
+        }
     }
     startsWith("/ds search ") {
         val packet = this

@@ -7,7 +7,6 @@ import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.QueryType
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
-import cn.ac.origind.destinybot.response.bungie.DestinyProfile
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.minecraft.MinecraftSpec
@@ -19,6 +18,8 @@ import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.uchuhimo.konf.Config
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
@@ -47,13 +48,13 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.system.measureTimeMillis
 
 
 val races = arrayOf("人类", "觉醒者", "EXO", "未知")
 val classes = arrayOf("泰坦", "猎人", "术士", "未知")
 val genders = arrayOf("男", "女", "未知")
 
+val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 val client = OkHttpClient.Builder()
@@ -218,11 +219,7 @@ object DestinyBot {
                 append("Raid 报告: https://raid.report/pc/${membershipId}")
             })
             val profile = withContext(Dispatchers.IO) {
-                val ret: DestinyProfile?
-                logger.debug("获取个人信息花费了 " + measureTimeMillis {
-                    ret = getProfile(3, membershipId)
-                } + "ms")
-                return@withContext ret
+                getProfile(3, membershipId)
             }
             if (profile == null)
                 packet.reply("获取详细信息时失败，请重试。")

@@ -24,6 +24,8 @@ dependencies {
 	implementation "net.mamoe:mirai-core-qqandroid-jvm:$miraiVersion"
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
     implementation "com.squareup.okhttp3:okhttp:4.8.1"
+    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.9.2'
+    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: '1.9.2'
     implementation 'org.litote.kmongo:kmongo:3.12.2'
     implementation 'org.litote.kmongo:kmongo-coroutine:3.12.2'
     implementation 'com.uchuhimo:konf-core:0.22.1'

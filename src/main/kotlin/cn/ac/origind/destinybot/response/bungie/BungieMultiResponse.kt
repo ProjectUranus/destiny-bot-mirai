@@ -1,8 +1,8 @@
 package cn.ac.origind.destinybot.response.bungie
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.squareup.moshi.JsonClass
 
-@JsonInclude
+@JsonClass(generateAdapter = true)
 open class BungieMultiResponse<T> : DestinyMessageResponse() {
     var Response: List<T> = emptyList()
     override fun toString(): String {

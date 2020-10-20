@@ -1,8 +1,8 @@
 package cn.ac.origind.destinybot.data
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.squareup.moshi.JsonClass
 
-@JsonInclude
+@JsonClass(generateAdapter = true)
 data class User(
     var qq: Long = -1L,
     var bungieMembershipId: String? = "",

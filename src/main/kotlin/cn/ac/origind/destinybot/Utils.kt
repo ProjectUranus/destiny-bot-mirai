@@ -83,5 +83,6 @@ suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Bu
         init()
     }.build()
     val response = client.newCall(request)
-    mapper.readValue(response.execute().body?.string()!!, T::class.java)
+    val json = response.execute().body?.string()!!
+    moshi.adapter(T::class.java).fromJson(json)!!
 }
