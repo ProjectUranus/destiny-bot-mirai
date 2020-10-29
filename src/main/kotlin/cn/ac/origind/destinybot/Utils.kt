@@ -68,21 +68,21 @@ inline fun <reified T> T?.orLogThrow(msg: String, e: Throwable? = null) : T {
     }
 }
 
-suspend inline fun getBody(url: String, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
+suspend inline fun getBody(url: String, proxy: Boolean = true, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
     val request = Request.Builder().apply {
         url(url)
         init()
     }.build()
-    val response = client.newCall(request)
+    val response = (if(proxy)client else rawClient).newCall(request)
     response.execute().body?.string() ?: ""
 }
 
-suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Builder.() -> Unit = {}): T = withContext(Dispatchers.IO) {
+suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, crossinline init: Request.Builder.() -> Unit = {}): T = withContext(Dispatchers.IO) {
     val request = Request.Builder().apply {
         url(url)
         init()
     }.build()
-    val response = client.newCall(request)
+    val response = (if(proxy)client else rawClient).newCall(request)
     val json = response.execute().body?.string()!!
     moshi.adapter(T::class.java).fromJson(json)!!
 }

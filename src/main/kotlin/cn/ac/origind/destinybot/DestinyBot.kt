@@ -18,6 +18,7 @@ import cn.ac.origind.uno.initUnoGame
 import cn.ac.origind.uno.unoGames
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.mojang.brigadier.CommandDispatcher
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.uchuhimo.konf.Config
@@ -40,6 +41,8 @@ import org.litote.kmongo.KMongo
 import org.litote.kmongo.findOne
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -58,6 +61,17 @@ val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 val client = OkHttpClient.Builder()
+    .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(10, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(true)
+    .followRedirects(true)
+    .followSslRedirects(true)
+    .proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", 1080)))
+    .callTimeout(10, TimeUnit.SECONDS)
+    .build()
+
+val rawClient = OkHttpClient.Builder()
     .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
     .connectTimeout(10, TimeUnit.SECONDS)
     .readTimeout(10, TimeUnit.SECONDS)
@@ -88,10 +102,11 @@ object DestinyBot {
         fileBasedDeviceInfo()
     } }
 
-    val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault());
+    val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault())
 
+    val dispatcher = CommandDispatcher<MessageEvent>()
     val mongoClient = KMongo.createClient()
-    val db = mongoClient.getDatabase("destiny2")
+    val     db = mongoClient.getDatabase("destiny2")
     val activities = hashMapOf<String, String>()
     val lores = hashMapOf<String, String>()
     val server = DestinyBotServer()
@@ -117,6 +132,9 @@ object DestinyBot {
         bot.close()
     }
 
+    fun registerCommands() {
+    }
+
     @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
         subscribeMessages {
@@ -126,7 +144,7 @@ object DestinyBot {
             }
             */
             content { str -> str.startsWith('/') && activities.containsKey(str.removePrefix("/")) }.reply {
-                if (it.isNullOrEmpty()) return@reply Unit
+                if (it.isEmpty()) return@reply Unit
                 val collection = db.getCollection("DestinyActivityDefinition_chs")
                 val doc = collection.findOne("""{"_id": "${activities[it.removePrefix("/")]}"}""")
                 doc?.get("displayProperties", Document::class.java)?.getString("description") ?: ""
