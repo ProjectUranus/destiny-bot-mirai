@@ -4,6 +4,7 @@ import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
+import cn.ac.origind.destinybot.debug.LatencyEventListener
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.QueryType
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
@@ -69,6 +70,7 @@ val client = OkHttpClient.Builder()
     .followSslRedirects(true)
     .proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", 1080)))
     .callTimeout(10, TimeUnit.SECONDS)
+    .eventListener(LatencyEventListener())
     .build()
 
 val rawClient = OkHttpClient.Builder()
@@ -79,6 +81,7 @@ val rawClient = OkHttpClient.Builder()
     .followRedirects(true)
     .followSslRedirects(true)
     .callTimeout(10, TimeUnit.SECONDS)
+    .eventListener(LatencyEventListener())
     .build()
 
 object DestinyBot {

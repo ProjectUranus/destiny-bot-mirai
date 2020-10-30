@@ -1,12 +1,18 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.DestinyBot.config
 import cn.ac.origind.destinybot.DestinyBot.logger
+import cn.ac.origind.destinybot.config.AppSpec
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessageSubscribersBuilder
+import net.mamoe.mirai.getFriendOrNull
 import net.mamoe.mirai.message.MessageEvent
 import okhttp3.Request
+
+val DEBUG : Boolean get() = config[AppSpec.debug]
 
 @MessageDsl
 fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
@@ -56,6 +62,16 @@ fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>
     }
 }
 
+private val loggingFriend get() = DestinyBot.bot.getFriendOrNull(1276571946)
+
+fun groupLog(message: String) {
+    if (DEBUG)
+        loggingFriend?.launch {
+            loggingFriend?.sendMessage(message)
+        }
+}
+
+
 /**
  * @throws RuntimeException
  */
@@ -73,8 +89,10 @@ suspend inline fun getBody(url: String, proxy: Boolean = true, crossinline init:
         url(url)
         init()
     }.build()
-    val response = (if(proxy)client else rawClient).newCall(request)
-    response.execute().body?.string() ?: ""
+    val call = (if(proxy)client else rawClient).newCall(request)
+    val response = call.execute()
+    groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
+    response.body?.string() ?: ""
 }
 
 suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, crossinline init: Request.Builder.() -> Unit = {}): T = withContext(Dispatchers.IO) {
@@ -82,7 +100,9 @@ suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, cross
         url(url)
         init()
     }.build()
-    val response = (if(proxy)client else rawClient).newCall(request)
-    val json = response.execute().body?.string()!!
+    val call = (if(proxy)client else rawClient).newCall(request)
+    val response = call.execute()
+    groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
+    val json = response.body?.string()!!
     moshi.adapter(T::class.java).fromJson(json)!!
 }
