@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.command.CommandManager
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
 import cn.ac.origind.destinybot.config.DictSpec
@@ -130,6 +131,7 @@ object DestinyBot {
             lores.putAll(loreCollection.find().map { it.get("displayProperties", Document::class.java)?.getString("name")!! to it.getString("_id") })
             println(activities.keys.toString())
         }
+        CommandManager.init()
         bot.subscribeMessages()
         bot.join()
         bot.close()

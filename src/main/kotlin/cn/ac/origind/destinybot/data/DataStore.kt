@@ -9,12 +9,15 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
-val users = hashMapOf<Long, User>()
-
 object DataStore {
+    private val users = hashMapOf<Long, UserData>()
     private val writeOptions = arrayOf(StandardOpenOption.WRITE, StandardOpenOption.CREATE)
     val logger = LoggerFactory.getLogger("DataStore")
     val usersDir = Paths.get("users").toAbsolutePath()
+
+    operator fun get(id: Long) = users.getOrPut(id) { UserData(id) }
+
+    operator fun contains(id: Long) = users.containsKey(id)
 
     suspend fun init() = withContext(Dispatchers.IO) {
         if (Files.notExists(usersDir)) {
@@ -42,7 +45,7 @@ object DataStore {
         users.clear()
         withContext(Dispatchers.IO) {
             Files.list(usersDir).forEach {
-                val user = mapper.readValue<User>(it.toFile())
+                val user = mapper.readValue<UserData>(it.toFile())
                 users[user.qq] = user
             }
             logger.info("Loaded {} users", users.size)

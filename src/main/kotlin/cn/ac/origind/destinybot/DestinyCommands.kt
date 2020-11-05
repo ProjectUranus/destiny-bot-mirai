@@ -1,8 +1,6 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.data.DataStore
-import cn.ac.origind.destinybot.data.User
-import cn.ac.origind.destinybot.data.users
 import cn.ac.origind.destinybot.database.getRandomLore
 import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
@@ -52,8 +50,8 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         reply("传奇故事：" + lore.name + '\n' + lore.lore)
     }
     case("我的信息") {
-        val user = users[sender.id]
-        if (user?.destinyMembershipId == null) reply("你还没有绑定账号! 请搜索一个玩家并绑定之。")
+        val user = DataStore[sender.id]
+        if (user.destinyMembershipId == null) reply("你还没有绑定账号! 请搜索一个玩家并绑定之。")
         else {
             DestinyBot.replyProfile(user.destinyMembershipType, user.destinyMembershipId!!, this)
         }
@@ -68,7 +66,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
                 val destinyMembership = getProfile(3, id.toString())?.profile?.data?.userInfo
                 if (destinyMembership == null) reply("无法找到该玩家，检查一下？")
                 else {
-                    users.getOrPut(sender.id) { User(sender.id) }.apply {
+                    DataStore[sender.id].apply {
                         destinyMembershipId = destinyMembership.membershipId
                         destinyMembershipType = destinyMembership.membershipType
                         destinyDisplayName = destinyMembership.displayName
@@ -84,7 +82,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
             if (result.size < index + 1) reply("你的序号太大了点。")
             val destinyMembership = result[index.toInt()]
             try {
-                users.getOrPut(sender.id) { User(sender.id) }.apply {
+                DataStore[sender.id].apply {
                     destinyMembershipId = destinyMembership.membershipId
                     destinyMembershipType = destinyMembership.membershipType
                     destinyDisplayName = destinyMembership.displayName

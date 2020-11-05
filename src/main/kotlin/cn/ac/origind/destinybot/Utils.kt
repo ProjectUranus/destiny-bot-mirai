@@ -10,9 +10,13 @@ import net.mamoe.mirai.event.MessageDsl
 import net.mamoe.mirai.event.MessageSubscribersBuilder
 import net.mamoe.mirai.getFriendOrNull
 import net.mamoe.mirai.message.MessageEvent
+import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.PlainText
 import okhttp3.Request
 
 val DEBUG : Boolean get() = config[AppSpec.debug]
+
+val MessageChain.content get() = get(PlainText)?.content ?: ""
 
 @MessageDsl
 fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
