@@ -19,11 +19,11 @@ val DEBUG : Boolean get() = config[AppSpec.debug]
 val MessageChain.content get() = get(PlainText)?.content ?: ""
 
 @MessageDsl
-fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
+fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, RR, RR>.caseAny(
     vararg equals: String,
     ignoreCase: Boolean = false,
     trim: Boolean = true
-): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
+): MessageSubscribersBuilder<M, Ret, RR, RR>.ListeningFilter {
     val equalsSequence = equals.asSequence()
     return if (trim) {
         content { text -> equalsSequence.any { it.equals(text.trim(), ignoreCase) } }

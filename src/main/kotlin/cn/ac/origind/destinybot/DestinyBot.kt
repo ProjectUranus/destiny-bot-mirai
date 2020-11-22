@@ -1,13 +1,13 @@
 package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.command.CommandManager
+import cn.ac.origind.destinybot.command.Query
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.debug.LatencyEventListener
 import cn.ac.origind.destinybot.image.toImage
-import cn.ac.origind.destinybot.response.QueryType
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
@@ -85,6 +85,9 @@ val rawClient = OkHttpClient.Builder()
     .eventListener(LatencyEventListener())
     .build()
 
+// 用户在查询什么?
+val userQueries = ConcurrentHashMap<Long, Query<*>>()
+
 object DestinyBot {
     init {
         System.setProperty("org.litote.mongo.test.mapping.service", "org.litote.kmongo.jackson.JacksonClassMappingTypeService")
@@ -92,9 +95,6 @@ object DestinyBot {
     }
 
     val logger = LoggerFactory.getLogger("DestinyBot")
-
-    // 用户在查询什么?
-    val userQueries = ConcurrentHashMap<Long, QueryType>()
 
     val config = Config {
         addSpec(AccountSpec)
@@ -110,7 +110,7 @@ object DestinyBot {
 
     val dispatcher = CommandDispatcher<MessageEvent>()
     val mongoClient = KMongo.createClient()
-    val     db = mongoClient.getDatabase("destiny2")
+    val db = mongoClient.getDatabase("destiny2")
     val activities = hashMapOf<String, String>()
     val lores = hashMapOf<String, String>()
     val server = DestinyBotServer()
@@ -131,18 +131,15 @@ object DestinyBot {
             lores.putAll(loreCollection.find().map { it.get("displayProperties", Document::class.java)?.getString("name")!! to it.getString("_id") })
             println(activities.keys.toString())
         }
-        CommandManager.init()
         bot.subscribeMessages()
         bot.join()
         bot.close()
     }
 
-    fun registerCommands() {
-    }
-
     @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
         subscribeMessages {
+            CommandManager.init(this)
             /*
             content(matching(Regex("[？?¿]*")).filter) {
                 reply("你扣个锤子问号？")

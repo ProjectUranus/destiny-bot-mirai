@@ -60,10 +60,16 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         val content = message[PlainText]?.content!!
         val id = content.removePrefix("绑定 ").toLong()
         if (profileQuerys[sender.id]?.get(id.toInt() - 1) == null) {
+
             // 直接绑定 ID
             if (content.length < 8) reply("你输入的命运2 ID是不是稍微短了点？")
             else {
-                val destinyMembership = getProfile(3, id.toString())?.profile?.data?.userInfo
+                val destinyMembership = if (id.toString().startsWith("7656")) {
+                    getMembershipFromHardLinkedCredential(id.toString())
+                } else {
+                    getProfile(3, id.toString())?.profile?.data?.userInfo
+                }
+
                 if (destinyMembership == null) reply("无法找到该玩家，检查一下？")
                 else {
                     DataStore[sender.id].apply {

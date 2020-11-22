@@ -28,6 +28,9 @@ fun MessageEvent.plainOrAt(qq: Long) = buildMessageChain {
 }
 
 fun MessagePacketSubscribersBuilder.configCommands() {
+    startsWith("sudo ").reply {
+
+    }
     matching(Regex("/op \\w+")).and(content { sender.id in config[AppSpec.ops] }).reply {
         val qq = it.removePrefix("/op ").toLong()
         config[AppSpec.ops] = config[AppSpec.ops] + qq
