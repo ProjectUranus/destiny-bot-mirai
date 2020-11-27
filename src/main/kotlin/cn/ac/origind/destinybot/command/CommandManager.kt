@@ -11,9 +11,9 @@ object CommandManager {
     val dispatcher: CommandDispatcher<MessageEvent> = CommandDispatcher()
 
     fun init(subscriber: MessagePacketSubscribersBuilder) {
-        subscriber.startsWith("/") {
-            handleCommand(this, it)
-        }
+//        subscriber.startsWith("/") {
+//            handleCommand(this, it)
+//        }
         destinyBrigadierCommands(dispatcher)
     }
 

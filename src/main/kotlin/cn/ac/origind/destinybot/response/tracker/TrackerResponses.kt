@@ -1,8 +1,14 @@
 package cn.ac.origind.destinybot.response.tracker
 
 import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.JsonClass
 
-open class TrackerResponse<T>(var data: T? = null)
+open class TrackerResponse<T>(var data: T? = null, var errors: List<TrackerError>? = null)
+
+@JsonClass(generateAdapter = true)
+data class TrackerError(val code: Int, val message: String)
+
+class TrackerException(val error: List<TrackerError>) : Exception(error.joinToString { it.message + "\n" })
 
 data class BaseTrackerProfile(
     var platformId: Int = 0, var platformSlug: String = "", var platformUserIdentifier: String = "", var platformUserHandle: String = "",
@@ -22,3 +28,5 @@ data class TrackerCharacter(var id: String = "", var activeCharacter: Boolean = 
 class TrackerProfileResponse : TrackerResponse<List<BaseTrackerProfile>>()
 
 class TrackerCharactersResponse : TrackerResponse<List<TrackerCharacter>>()
+
+class TrackerWeaponResponse : TrackerResponse<TrackerWeapon>()

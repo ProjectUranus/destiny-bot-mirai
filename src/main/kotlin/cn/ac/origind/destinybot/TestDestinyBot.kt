@@ -1,11 +1,11 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.command.CommandManager
-import cn.ac.origind.destinybot.command.destinyBrigadierCommands
-import com.mojang.brigadier.CommandDispatcher
+import cn.ac.origind.destinybot.DestinyBot.logger
+import cn.ac.origind.destinybot.image.toImage
 import kotlinx.coroutines.runBlocking
-import net.mamoe.mirai.message.MessageEvent
 import java.awt.Color
+import java.io.File
+import javax.imageio.ImageIO
 
 val normalColor = Color(255, 255, 255)
 val pveColor = Color(87, 145, 190)
@@ -14,7 +14,9 @@ val godColor = Color(227, 202, 87)
 
 fun main(args: Array<String>) {
     runBlocking {
-        val dispatcher: CommandDispatcher<MessageEvent> = CommandDispatcher()
-        destinyBrigadierCommands(CommandManager.dispatcher)
+        fetchWishlist()
+        ImageIO.write(Database.getItemDefinition("153979397").toImage(getItemPerks("153979397")), "png", File("output.png"))
+        logger.info("Success")
+    //        println(getItemPerks("3089417789"))
     }
 }

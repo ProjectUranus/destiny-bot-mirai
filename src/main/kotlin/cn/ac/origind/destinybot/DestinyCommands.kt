@@ -4,7 +4,6 @@ import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.database.getRandomLore
 import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
-import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.image.getImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import io.ktor.client.features.*
@@ -139,7 +138,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
                 } catch (e: ItemNotFoundException) {
                     reply("搜索失败: ${e.localizedMessage}, 正在尝试其他方式")
                 } catch (e: Exception) {
-                    reply("搜索失败：" + e.joinToString())
+                    reply("搜索失败：${e.localizedMessage}, 正在尝试其他方式")
                 }
             }
         }
