@@ -22,6 +22,7 @@ suspend fun getImage(icon: String): BufferedImage = withContext(Dispatchers.IO) 
     // Check Directory
     val dir = Paths.get(when {
         icon.startsWith("/common/destiny2_content/icons") -> "destiny2_icons"
+        icon.startsWith("https://titles.trackercdn.com/destiny/common/destiny2_content/icons") -> "destiny2_icons"
         icon.startsWith("/common/destiny2_content/screenshots") -> "destiny2_screenshots"
         else -> "destiny2_images"
     }).toAbsolutePath()

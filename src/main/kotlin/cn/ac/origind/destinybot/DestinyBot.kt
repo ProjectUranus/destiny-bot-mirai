@@ -123,6 +123,8 @@ object DestinyBot {
         logger.info("Logged in")
         initUnoGame()
         initMinecraftVersion()
+        fetchWishlist()
+        logger.info("Fetched Little Light Wishlist")
         withContext(Dispatchers.Default) {
             val collection = db.getCollection("DestinyActivityDefinition_chs")
             activities.putAll(collection.find().map { it.get("displayProperties", Document::class.java)?.getString("name")!! to it.getString("_id") })
@@ -203,7 +205,7 @@ object DestinyBot {
         packet.reply(item.toImage(perks).upload(packet.subject))
         packet.reply(buildMessageChain {
             add(buildString {
-                appendLine("信息来自 light.gg")
+                appendLine("信息来自 Little Light 愿望单")
                 appendLine(item.displayProperties?.name + " " + item.itemTypeAndTierDisplayName)
                 appendLine(item.displayProperties?.description)
                 appendLine()

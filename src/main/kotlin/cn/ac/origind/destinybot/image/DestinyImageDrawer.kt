@@ -8,13 +8,13 @@ import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import cn.ac.origind.destinybot.response.lightgg.ItemPerks
 import cn.ac.origind.destinybot.response.lightgg.ItemTier
 import cn.ac.origind.destinybot.response.lightgg.PerkType
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Font
-import java.awt.Image
+import java.awt.*
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
+
+
+
 
 
 val normalColor = Color(255, 255, 255)
@@ -65,6 +65,14 @@ suspend fun List<CharacterComponent>.toImage() : BufferedImage {
 suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
     val image = getImage(screenshot!!)
     with (image.createGraphics()) {
+        setRenderingHints(RenderingHints(mapOf(
+            RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+            RenderingHints.KEY_ALPHA_INTERPOLATION to RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY,
+            RenderingHints.KEY_COLOR_RENDERING to RenderingHints.VALUE_COLOR_RENDER_QUALITY,
+            RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+            RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+        )))
+
         font = Font("Microsoft YaHei UI", Font.BOLD, 66)
         var metrics = getFontMetrics(font)
 
@@ -83,7 +91,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
             drawString(itemTypeAndTierDisplayName!!, 260, 170 + metrics.ascent)
             color = Color.white
         } else drawString(itemTypeAndTierDisplayName!!, 260, 170 + metrics.ascent)
-        drawString(displayProperties?.description!!, 140, 240 + metrics.ascent)
+        drawString(displayProperties?.description!!, 140, 230 + metrics.ascent)
 
         if (perks.onlyCurated) drawString("武器特性", 140, 300 + metrics.ascent)
         else drawString("随机特性", 140, 300 + metrics.ascent)
@@ -96,11 +104,11 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
             for (i in perks.curated.indices) {
                 val perk = perks.curated[i]
                 if (tier == ItemTier.EXOTIC && i == 0) {
-                    drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
-                } else if (perk.displayProperties?.name?.contains("框架") == true) {
-                    drawImage(getImage(perk.displayProperties?.icon!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
+                    drawImage(getImage(perk.url!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
+                } else if (perk.displayProperties?.name?.contains("Frame") == true) {
+                    drawImage(getImage(perk.url!!).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
                 } else
-                    drawImage(perkImage(perk.displayProperties?.icon!!, 0).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
+                    drawImage(perkImage(perk.url!!, 0).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
                 x += 93
                 if (i < perks.curated.indices.last)
                     drawLine(x, 355, x, 355 + 80)
@@ -115,7 +123,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
 
             arrayOf(barrels, magazines, perk1, perk2).forEach {
                 for (perk in it) {
-                    drawImage(perkImage(perk.displayProperties?.icon!!, perk.perkRecommend).getScaledInstance(80, 80, Image.SCALE_DEFAULT), x, y, null)
+                    drawImage(perkImage(perk.url!!, perk.perkRecommend).getScaledInstance(80, 80, Image.SCALE_SMOOTH), x, y, null)
                     y += 100
                 }
                 x += 93
@@ -132,7 +140,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
 
 suspend fun perkImage(icon: String, perk: Int): BufferedImage {
     val image = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
-    val outsidePx = 2.0
+    val outsidePx = 3.5
     with (image.createGraphics()) {
         color = Color(178, 207, 227)
         fill(Ellipse2D.Double(0.0, 0.0, 128.0, 128.0))

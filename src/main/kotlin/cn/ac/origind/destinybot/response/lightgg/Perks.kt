@@ -28,8 +28,18 @@ data class ItemDefinition(var _id: String? = "", var screenshot: String? = "", v
 @JsonClass(generateAdapter = true)
 data class ItemPerks(var curated: List<ItemPerk> = emptyList(), var favorite: List<ItemPerk> = emptyList(),
                      var pvp: List<ItemPerk> = emptyList(), var pve: List<ItemPerk> = emptyList(), var normal: List<ItemPerk> = emptyList(), var onlyCurated: Boolean = false) {
+    operator fun plusAssign(perk: ItemPerk) {
+        if (perk.isCurated) curated += perk
+        else when(perk.perkRecommend) {
+            -1 -> normal += perk
+            0 -> pve += perk
+            1 -> pvp += perk
+            2 -> favorite += perk
+        }
+    }
     val all get() = (favorite.asSequence() + pvp + pve + normal).sortedBy { -it.perkRecommend }
 }
 
 @JsonClass(generateAdapter = true)
-data class ItemPerk(var displayProperties: DisplayProperties? = DisplayProperties(), var _id: String? = "", var type: PerkType? = null, var itemTypeDisplayName: String? = null, var perkRecommend: Int = -1)
+data class ItemPerk(var displayProperties: DisplayProperties? = DisplayProperties(), var isCurated: Boolean = false,
+                    var _id: String? = "", var type: PerkType? = null, var itemTypeDisplayName: String? = null, var perkRecommend: Int = -1, var url: String? = null)
