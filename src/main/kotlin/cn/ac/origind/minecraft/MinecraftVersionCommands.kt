@@ -2,10 +2,10 @@ package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
 import cn.ac.origind.destinybot.mapper
+import cn.ac.origind.destinybot.reply
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
-import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import java.io.File
 import java.time.*
 
@@ -22,19 +22,20 @@ suspend fun initMinecraftVersion() {
     versionMap = versionManifest.versions?.map { "/" + it.id!!.replace(".", "") to it }?.toMap() ?: emptyMap()
 }
 
-fun MessagePacketSubscribersBuilder.minecraftCommands() {
+fun MessageEventSubscribersBuilder.minecraftCommands() {
     case("/ping") {
         MinecraftClientLogin.statusAsync(subject)
     }
-    subscriber(content { it.startsWith("/ping ") && config[MinecraftSpec.servers].containsKey(it.removePrefix("/ping ")) }.filter) {
-        val spec = config[MinecraftSpec.servers][it]
-        MinecraftClientLogin.statusAsync(subject, spec!!.host!!, spec.port)
-    }
-    matching(Regex("/ping (\\w+\\.)+(\\w)+(:\\d+)?")) {
-        val address = message[PlainText]!!.content.removePrefix("/ping ")
+    startsWith("/ping ") {
+        val address = it
+        if (config[MinecraftSpec.servers].containsKey(it)) {
+            val spec = config[MinecraftSpec.servers][it.removePrefix("/ping ")]
+            MinecraftClientLogin.statusAsync(subject, spec!!.host!!, spec.port)
+            return@startsWith
+        }
         if (address.startsWith("192.") || address.startsWith("127.")) {
             reply("老子用 LOIC 把你妈的内网 ping 了，再往里面塞几个超长握手包让你妈的服务器彻底暴毙")
-            return@matching
+            return@startsWith
         }
         if (address.contains(':')) {
             try {
@@ -67,7 +68,10 @@ fun MessagePacketSubscribersBuilder.minecraftCommands() {
         val period = Period.between(ZonedDateTime.parse(version?.releaseTime).toLocalDate(), now.toLocalDate())
 
         reply(buildString {
-            append("最新预览版 Minecraft ${version?.id} 已经发布 ")
+            if (versionManifest.latest?.snapshot == versionManifest.latest?.release)
+                append("最新版本 Minecraft ${version?.id} 已经发布 ")
+            else
+                append("最新预览版 Minecraft ${version?.id} 已经发布 ")
             if (period.years > 0) append("${period.years} 年 ")
             if (period.months > 0) append("${period.months} 月 ")
             append("${period.days} 天 ${duration.toHoursPart()} 小时 ${duration.toMinutesPart()} 分钟 ${duration.toSecondsPart()} 秒 ${duration.toMillisPart()} 毫秒了, ")

@@ -2,13 +2,14 @@ package cn.ac.origind.destinybot
 
 import cn.ac.origind.destinybot.DestinyBot.config
 import cn.ac.origind.destinybot.config.AppSpec
+import cn.ac.origind.destinybot.config.BilibiliSpec
 import com.uchuhimo.konf.NoSuchItemException
 import com.uchuhimo.konf.source.json.toJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
-import net.mamoe.mirai.message.MessageEvent
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
+import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.message.data.buildMessageChain
 
@@ -22,14 +23,26 @@ suspend fun saveConfig() = withContext(Dispatchers.IO) {
  */
 fun MessageEvent.plainOrAt(qq: Long) = buildMessageChain {
     if (subject is Group)
-        add(At((subject as Group)[qq]))
+        add(At((subject as Group)[qq]!!))
     else
         add("$qq")
 }
 
-fun MessagePacketSubscribersBuilder.configCommands() {
-    startsWith("sudo ").reply {
-
+fun MessageEventSubscribersBuilder.configCommands() {
+    case("下饭主播").and(sentFrom(967848202).or(sentFrom(601897811))).reply {
+        buildString {
+            var anyOnline = false
+            for (id in config[BilibiliSpec.lives]) {
+                val roomInfo = withContext(Dispatchers.IO) {
+                    getLiveRoomInfo(id)
+                }
+                if (roomInfo.live_status == 1) {
+                    appendLine("你喜爱的主播：" + roomInfo.title + " 正在直播并有${roomInfo.online}人气值！https://live.bilibili.com/$id")
+                    anyOnline = true
+                }
+            }
+            if (!anyOnline) append("你喜爱的主播们都不在直播哦O(∩_∩)O")
+        }
     }
     matching(Regex("/op \\w+")).and(content { sender.id in config[AppSpec.ops] }).reply {
         val qq = it.removePrefix("/op ").toLong()

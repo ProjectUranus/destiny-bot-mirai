@@ -1,5 +1,6 @@
 package cn.ac.origind.uno
 
+import cn.ac.origind.destinybot.upload
 import cn.ac.origind.uno.DeskRenderer.RenderDesk
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
@@ -8,7 +9,6 @@ import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.message.data.At
 import net.mamoe.mirai.message.data.buildMessageChain
-import net.mamoe.mirai.message.sendImage
 import java.time.Instant
 import java.util.*
 import java.util.function.Predicate
@@ -32,7 +32,7 @@ class Desk(val group: Group) {
     suspend fun finish(player: UnoPlayer) {
         group.sendMessage(atMessage(player.member, "赢了!"))
         for (player in players) player.publicCard = true
-        group.sendImage(RenderDesk())
+        group.sendMessage(RenderDesk().upload(group))
     }
 
     @ExperimentalStdlibApi
@@ -186,7 +186,7 @@ class Desk(val group: Group) {
     fun atMessage(message: String, member: Member) = buildMessageChain { add(message); add(At(member)) }
 
     suspend fun sendLastCardMessage() {
-        group.sendImage(RenderDesk())
+        group.sendMessage(RenderDesk().upload(group))
         group.sendMessage(atMessage(currentPlayer!!.member, " 请出牌"))
 
     }

@@ -1,8 +1,9 @@
 package cn.ac.origind.minecraft
 
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
+import cn.ac.origind.destinybot.reply
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 
-fun MessagePacketSubscribersBuilder.curseForgeCommands() {
+fun MessageEventSubscribersBuilder.curseForgeCommands() {
     startsWith("搜索mod ", removePrefix = true, trim = true) {
         reply(buildString {
             searchImmibis(it).forEachIndexed { index, mod ->

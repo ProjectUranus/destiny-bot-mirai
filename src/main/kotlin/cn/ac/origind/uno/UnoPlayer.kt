@@ -1,11 +1,11 @@
 package cn.ac.origind.uno
 
-import net.mamoe.mirai.contact.Member
+import cn.ac.origind.destinybot.upload
+import net.mamoe.mirai.contact.NormalMember
 import net.mamoe.mirai.message.data.At
-import net.mamoe.mirai.message.sendImage
 import java.time.Instant
 
-class UnoPlayer(val member: Member, val desk: Desk) {
+class UnoPlayer(val member: NormalMember, val desk: Desk) {
     var index = 0
     var lastSendTime = Instant.now()
     var autoSubmit = false
@@ -24,7 +24,7 @@ class UnoPlayer(val member: Member, val desk: Desk) {
             else
                 "你的卡太多啦, 这里是你的卡：" + cards.joinToString(", ") { it.shortName })
         } else {
-            member.sendImage(drawUnoCards(cards))
+            member.sendMessage(drawUnoCards(cards).upload(member))
         }
     }
 }

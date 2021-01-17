@@ -1,6 +1,7 @@
 package cn.ac.origind.uno
 
-import cn.ac.origind.destinybot.caseAny
+import cn.ac.origind.destinybot.reply
+import cn.ac.origind.destinybot.upload
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -8,10 +9,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import net.mamoe.mirai.message.data.At
-import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
+import net.mamoe.mirai.message.data.content
 import java.io.InputStreamReader
 import java.util.function.Predicate
 
@@ -27,10 +28,10 @@ suspend fun initUnoGame() {
 }
 
 @ExperimentalStdlibApi
-fun MessagePacketSubscribersBuilder.unoGames() {
-    subscriber(caseAny(messagesValues).filter) {
-        val command = messageCommandMap[message[PlainText]!!.content]
-        val member = (subject as Group)[sender.id]
+fun MessageEventSubscribersBuilder.unoGames() {
+    content { messagesValues.contains(it) }.invoke {
+        val command = messageCommandMap[message.content]
+        val member = (subject as Group)[sender.id]!!
         when (command) {
             "join" -> {
                 val desk = unoGameMap.getOrPut(subject.id) { Desk(subject as Group) }
@@ -52,13 +53,13 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                         }
                     })
                 }
-                return@subscriber
+                return@invoke
             }
             "start" -> {
                 val desk = unoGameMap.getOrPut(subject.id) { Desk(subject as Group) }
                 if (desk.players.size < 2) {
                     reply("喂伙计，玩家人数不够！")
-                    return@subscriber
+                    return@invoke
                 }
                 desk.players.shuffle()
                 desk.lastCard = desk.nextCard(Predicate { it.color != CardColor.Special && it.color != CardColor.Wild }).first()
@@ -73,7 +74,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                 })
                 desk.state = Desk.GamingState.Gaming
                 desk.sendLastCardMessage()
-                return@subscriber
+                return@invoke
             }
         }
         if (unoGameMap[subject.id] != null) {
@@ -93,7 +94,7 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                         } else {
                             reply("你还不能说 UNO!")
                         }
-                        return@subscriber
+                        return@invoke
                     }
                     "doubtUno" -> if (desk.lastSendPlayer?.cards?.size == 1 && desk.lastSendPlayer?.uno == false) {
                         reply(desk.atMessage(desk.lastSendPlayer!!.member, "没有说 UNO，被罚牌两张！"))
@@ -103,21 +104,21 @@ fun MessagePacketSubscribersBuilder.unoGames() {
                     "publicCard" -> {
                         player.publicCard = true
                         reply(desk.atMessage(player.member, " 明牌成功"))
-                        return@subscriber
+                        return@invoke
                     }
                     "myRound" -> {
                         reply("是是，我们都知道是你的回合")
-                        return@subscriber
+                        return@invoke
                     }
                     "autoSubmit" -> {
                         player.autoSubmit = true
                         reply("完成.")
-                        return@subscriber
+                        return@invoke
                     }
                     "disableAutoSubmit" -> {
                         player.autoSubmit = false
                         reply("搞定.")
-                        return@subscriber
+                        return@invoke
                     }
                 }
             }
@@ -167,6 +168,6 @@ fun MessagePacketSubscribersBuilder.unoGames() {
      */
     case("印卡") {
         val desk = Desk(subject as Group)
-        sendImage(drawUnoCards(desk.generateCards(20).sorted()))
+        reply(drawUnoCards(desk.generateCards(20).sorted()).upload(subject))
     }
 }
