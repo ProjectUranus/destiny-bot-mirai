@@ -6,67 +6,28 @@ import cn.ac.origind.destinybot.config.AppSpec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.mamoe.mirai.event.MessageDsl
-import net.mamoe.mirai.event.MessageSubscribersBuilder
-import net.mamoe.mirai.getFriendOrNull
-import net.mamoe.mirai.message.MessageEvent
-import net.mamoe.mirai.message.data.MessageChain
-import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.contact.Contact
+import net.mamoe.mirai.event.events.MessageEvent
+import net.mamoe.mirai.message.data.Image
+import net.mamoe.mirai.message.data.Message
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import okhttp3.Request
+import java.awt.image.RenderedImage
+import java.io.File
+import javax.imageio.ImageIO
 
 val DEBUG : Boolean get() = config[AppSpec.debug]
 
-val MessageChain.content get() = get(PlainText)?.content ?: ""
-
-@MessageDsl
-fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, RR, RR>.caseAny(
-    vararg equals: String,
-    ignoreCase: Boolean = false,
-    trim: Boolean = true
-): MessageSubscribersBuilder<M, Ret, RR, RR>.ListeningFilter {
-    val equalsSequence = equals.asSequence()
-    return if (trim) {
-        content { text -> equalsSequence.any { it.equals(text.trim(), ignoreCase) } }
-    } else {
-        content { text -> equalsSequence.any { it.equals(text, ignoreCase) } }
-    }
+val MessageEvent.user get() = {
 }
 
-@MessageDsl
-fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.caseAny(
-    equals: Collection<String>,
-    ignoreCase: Boolean = false,
-    trim: Boolean = true
-): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
-    return if (trim) {
-        if (ignoreCase)
-            content { text -> equals.any { it.equals(text.trim(), ignoreCase) } }
-        else
-            content { text -> equals.contains(text.trim()) }
-    } else {
-        if (ignoreCase)
-            content { text -> equals.any { it.equals(text, ignoreCase) } }
-        else
-            content { text -> equals.contains(text) }
-    }
-}
+private val loggingFriend get() = DestinyBot.bot.getFriend(1276571946)
 
-@MessageDsl
-fun <M : MessageEvent, Ret, R : RR, RR> MessageSubscribersBuilder<M, Ret, R, RR>.containsAny(
-    vararg contains: String,
-    ignoreCase: Boolean = false,
-    trim: Boolean = true
-): MessageSubscribersBuilder<M, Ret, R, RR>.ListeningFilter {
-    val containsSequence = contains.asSequence()
-    return if (trim) {
-        val toCheck = containsSequence.map { it.trim() }
-        content { text -> toCheck.any { text.contains(it, ignoreCase) } }
-    } else {
-        content { text -> containsSequence.any { text.contains(it, ignoreCase) } }
-    }
+suspend fun RenderedImage.upload(contact: Contact): Image {
+    val temp = File.createTempFile("img", ".png", null)
+    ImageIO.write(this, "png", temp)
+    return contact.uploadImage(temp.toExternalResource("png"))
 }
-
-private val loggingFriend get() = DestinyBot.bot.getFriendOrNull(1276571946)
 
 fun groupLog(message: String) {
     if (DEBUG)
@@ -110,3 +71,6 @@ suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, cross
     val json = response.body?.string()!!
     moshi.adapter(T::class.java).fromJson(json)!!
 }
+
+suspend fun MessageEvent.reply(message: String) = subject.sendMessage(message)
+suspend fun MessageEvent.reply(message: Message) = subject.sendMessage(message)

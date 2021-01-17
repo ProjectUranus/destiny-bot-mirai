@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.response.bungie.DestinyActivityDefinition
 import cn.ac.origind.destinybot.response.lightgg.DisplayProperties
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
 import org.litote.kmongo.find
@@ -22,5 +23,9 @@ object Database {
         return itemDefinitionCollection.find("""{"displayProperties.name": "$name"}""").map { document ->
             getItemDefinition(document["_id"].toString())?.displayProperties
         }.firstOrNull()
+    }
+
+    fun getActivity(id: Long): DestinyActivityDefinition {
+        return moshi.adapter(DestinyActivityDefinition::class.java).fromJson(DestinyBot.db.getCollection("DestinyActivityDefinition_chs_chs").findOne("""{"hash": $id}""")?.toJson()!!)!!
     }
 }

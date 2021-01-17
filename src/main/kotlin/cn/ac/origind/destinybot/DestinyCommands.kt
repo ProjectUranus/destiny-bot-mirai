@@ -9,16 +9,16 @@ import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import io.ktor.client.features.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
-import net.mamoe.mirai.message.data.PlainText
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import net.mamoe.mirai.message.data.buildMessageChain
+import net.mamoe.mirai.message.data.content
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 
 val profileQuerys = ConcurrentHashMap<Long, List<DestinyMembershipQuery>>()
 
-fun MessagePacketSubscribersBuilder.destinyCommands() {
-    content(caseAny("/ds help", "/dshelp", "/help").filter).reply {
+fun MessageEventSubscribersBuilder.destinyCommands() {
+    case("/ds help").reply {
         buildString {
             appendLine("欢迎使用 LG 的命运2小帮手机器人 555EX780+1GGWP 版。")
             appendLine("获取该帮助: /ds help, /dshelp, /help")
@@ -56,7 +56,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     matching(Regex("绑定 (\\d+)")) {
-        val content = message[PlainText]?.content!!
+        val content = message.content
         val id = content.removePrefix("绑定 ").toLong()
         if (profileQuerys[sender.id]?.get(id.toInt() - 1) == null) {
 
@@ -100,10 +100,14 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
 
-    content(caseAny("周报", "命运周报").filter).reply {
+    case("周报").reply {
         buildMessageChain {
-            add(getImage("https:${getLatestWeeklyReportURL()}").upload())
+            add(getImage("https:${getLatestWeeklyReportURL()}", false).upload(subject))
         }
+    }
+
+    endsWith("在干嘛", removeSuffix = true) {
+
     }
 
     matching(Regex("\\d+")) {
@@ -112,7 +116,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         val packet = this
         GlobalScope.launch {
             val result = profileQuerys[packet.sender.id]!!
-            val index = packet.message[PlainText]?.content!!.toInt() - 1
+            val index = packet.message.content.toInt() - 1
             if (result.size < index + 1) return@launch
             val destinyMembership = result[index]
             try {
@@ -144,7 +148,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         }
     }
     matching(Regex("/j \\d+")) {
-        val id = message[PlainText]!!.content.removePrefix("/j ")
+        val id = message.content.removePrefix("/j ")
         val query = getMembershipFromHardLinkedCredential(id)
         if (query == null) {
             reply("没有找到用户，请检查你的输入。")
@@ -153,7 +157,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         DestinyBot.replyProfile(query.membershipType, query.membershipId, this)
     }
     matching(Regex("/你给翻译翻译 \\d+")) {
-        val id = message[PlainText]!!.content.removePrefix("/你给翻译翻译 ")
+        val id = message.content.removePrefix("/你给翻译翻译 ")
         val query = getMembershipFromHardLinkedCredential(id)
         if (query == null) {
             reply("你不叫马邦德，我叫马邦德")
@@ -162,7 +166,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         reply("好嘞。\n你的棒鸡ID：${query.membershipId}")
     }
     matching(Regex("/ds \\d+")) {
-        val id = message[PlainText]!!.content.removePrefix("/ds ")
+        val id = message.content.removePrefix("/ds ")
         if (id.startsWith("765")) {
             val query = getMembershipFromHardLinkedCredential(id)
             if (query == null) {
@@ -178,7 +182,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
         val packet = this
         profileQuerys.remove(packet.sender.id)
         GlobalScope.launch {
-            val criteria = packet.message[PlainText]!!.content.removePrefix("/ds search ")
+            val criteria = packet.message.content.removePrefix("/ds search ")
             val result =
                 withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
             val profiles =
@@ -210,7 +214,7 @@ fun MessagePacketSubscribersBuilder.destinyCommands() {
                 players.forEachIndexed { index, profile ->
                     appendLine("${index + 1}. ${profile.displayName}: ...${profile.membershipId.takeLast(3)}")
                 }
-                appendLine("请直接回复前面的序号来获取详细信息。")
+                appendLine("请直接回复前面的序号（是1 2 3 不是375 668 451等等等）来获取详细信息。")
                 appendLine("或者，回复 绑定 [序号] 来将该用户绑定到你的 QQ 上。")
             })
         }

@@ -6,14 +6,16 @@ import cn.ac.origind.destinybot.database.searchItemDefinitions
 import cn.ac.origind.destinybot.exception.WeaponNotFoundException
 import cn.ac.origind.destinybot.exception.joinToString
 import cn.ac.origind.destinybot.getItemPerks
+import cn.ac.origind.destinybot.reply
 import com.mojang.brigadier.CommandDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import nederlib.bka.literal
-import net.mamoe.mirai.message.MessageEvent
+import net.mamoe.mirai.event.events.MessageEvent
 
 fun destinyBrigadierCommands(dispatcher: CommandDispatcher<MessageEvent>) {
+    CommandManager.prefixes.addAll(arrayOf("/perk"))
     dispatcher.literal("/perk") {
         string("weapon") {
             run {

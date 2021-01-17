@@ -4,6 +4,7 @@ import cn.ac.origind.destinybot.command.CommandManager
 import cn.ac.origind.destinybot.command.Query
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
+import cn.ac.origind.destinybot.config.BilibiliSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.debug.LatencyEventListener
@@ -15,9 +16,7 @@ import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.minecraft.curseForgeCommands
 import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
-import cn.ac.origind.pricechallange.priceChallengeCommands
 import cn.ac.origind.uno.initUnoGame
-import cn.ac.origind.uno.unoGames
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.mojang.brigadier.CommandDispatcher
@@ -30,12 +29,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.subscribeMessages
-import net.mamoe.mirai.join
-import net.mamoe.mirai.message.MessageEvent
 import net.mamoe.mirai.message.data.buildMessageChain
-import net.mamoe.mirai.message.upload
-import net.mamoe.mirai.utils.toExternalImage
+import net.mamoe.mirai.utils.BotConfiguration
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.bson.Document
@@ -101,9 +99,11 @@ object DestinyBot {
         addSpec(MinecraftSpec)
         addSpec(DictSpec)
         addSpec(AppSpec)
+        addSpec(BilibiliSpec)
     }.from.json.watchFile("config.json", delayTime = 15)
-    val bot by lazy { Bot(config[AccountSpec.qq], config[AccountSpec.password]) {
+    val bot by lazy { BotFactory.newBot(config[AccountSpec.qq], config[AccountSpec.password]) {
         fileBasedDeviceInfo()
+        protocol = BotConfiguration.MiraiProtocol.ANDROID_PHONE
     } }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault())
@@ -140,7 +140,7 @@ object DestinyBot {
 
     @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
-        subscribeMessages {
+        eventChannel.subscribeMessages {
             CommandManager.init(this)
             /*
             content(matching(Regex("[？?¿]*")).filter) {
@@ -194,14 +194,14 @@ object DestinyBot {
 //            doudizhuGames()
             configCommands()
             destinyCommands()
-            unoGames()
+//            unoGames()
             minecraftCommands()
             curseForgeCommands()
-            priceChallengeCommands()
         }
     }
 
     suspend fun replyPerks(item: ItemDefinition, perks: ItemPerks, packet: MessageEvent) {
+
         packet.reply(item.toImage(perks).upload(packet.subject))
         packet.reply(buildMessageChain {
             add(buildString {
@@ -249,9 +249,9 @@ object DestinyBot {
             packet.reply(buildMessageChain {
                 add("玩家: ${userProfile?.displayName}\n")
                 add("ID: ${userProfile?.membershipId}\n")
-                add(packet.subject.uploadImage(profile?.characters?.data?.map { (id, character) ->
+                add(profile?.characters?.data?.map { (id, character) ->
                     character
-                }?.toImage()?.toExternalImage()!!))
+                }?.toImage()?.upload(packet.subject)!!)
             })
 
             /*

@@ -1,19 +1,21 @@
 package cn.ac.origind.destinybot.command
 
 import cn.ac.origind.destinybot.DestinyBot
+import cn.ac.origind.destinybot.reply
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.exceptions.CommandSyntaxException
-import net.mamoe.mirai.event.MessagePacketSubscribersBuilder
-import net.mamoe.mirai.message.MessageEvent
+import net.mamoe.mirai.event.MessageEventSubscribersBuilder
+import net.mamoe.mirai.event.events.MessageEvent
 
 object CommandManager {
     val dispatcher: CommandDispatcher<MessageEvent> = CommandDispatcher()
+    val prefixes = mutableListOf<String>()
 
-    fun init(subscriber: MessagePacketSubscribersBuilder) {
-//        subscriber.startsWith("/") {
-//            handleCommand(this, it)
-//        }
+    fun init(subscriber: MessageEventSubscribersBuilder) {
+        subscriber.content { it.substringBefore(' ') in prefixes }.invoke {
+            handleCommand(this, it)
+        }
         destinyBrigadierCommands(dispatcher)
     }
 
