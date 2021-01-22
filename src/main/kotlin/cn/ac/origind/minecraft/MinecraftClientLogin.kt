@@ -2,6 +2,7 @@ package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
 import cn.ac.origind.destinybot.exception.joinToString
+import com.github.steveice10.mc.auth.service.AuthenticationService
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
 import com.github.steveice10.mc.protocol.data.SubProtocol
@@ -15,6 +16,7 @@ import kotlinx.coroutines.*
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 
 object MinecraftClientLogin {
@@ -39,6 +41,11 @@ object MinecraftClientLogin {
 
     suspend fun status(contact: Contact, host: String, port: Int) {
         val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
+        val service = AuthenticationService()
+        service.baseUri = "https://skin.youtiao.dev/api/yggdrasil/authserver/".toHttpUrl().toUri()
+
+
+
         client.session.setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY,
             ServerInfoHandler { session, info ->
                 contact.launch {
@@ -60,7 +67,7 @@ object MinecraftClientLogin {
             ServerPingTimeHandler { session, pingTime ->
                 contact.launch { contact.sendMessage("服务器延迟为 ${pingTime}ms") } })
 
-        client.session.connect()
+        client.session.connect(true)
 
         delay(1000)
     }
