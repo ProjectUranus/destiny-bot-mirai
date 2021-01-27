@@ -15,7 +15,6 @@ import nederlib.bka.literal
 import net.mamoe.mirai.event.events.MessageEvent
 
 fun destinyBrigadierCommands(dispatcher: CommandDispatcher<MessageEvent>) {
-    CommandManager.prefixes.addAll(arrayOf("/perk"))
     dispatcher.literal("/perk") {
         string("weapon") {
             run {

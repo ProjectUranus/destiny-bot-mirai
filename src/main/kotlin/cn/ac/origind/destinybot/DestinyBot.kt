@@ -1,6 +1,5 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.command.CommandManager
 import cn.ac.origind.destinybot.command.Query
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
@@ -141,7 +140,6 @@ object DestinyBot {
     @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
         eventChannel.subscribeMessages {
-            CommandManager.init(this)
             /*
             content(matching(Regex("[？?¿]*")).filter) {
                 reply("你扣个锤子问号？")
