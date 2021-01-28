@@ -6,11 +6,17 @@ import cn.ac.origind.destinybot.config.BilibiliSpec
 import com.uchuhimo.konf.NoSuchItemException
 import com.uchuhimo.konf.source.json.toJson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.getMember
+import net.mamoe.mirai.event.Event
 import net.mamoe.mirai.event.MessageEventSubscribersBuilder
+import net.mamoe.mirai.event.events.BotEvent
+import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.message.data.At
+import net.mamoe.mirai.message.data.MessageSource
 import net.mamoe.mirai.message.data.buildMessageChain
 
 suspend fun saveConfig() = withContext(Dispatchers.IO) {
@@ -42,6 +48,28 @@ fun MessageEventSubscribersBuilder.configCommands() {
                 }
             }
             if (!anyOnline) append("你喜爱的主播们都不在直播哦O(∩_∩)O")
+        }
+    }
+    startsWith("sudo ") {
+        return@startsWith
+        val member = it.substringBefore(' ').trim().toLong()
+        val message = it.substringAfter(' ').trim()
+        val event = this
+        if (subject is Group) {
+            reply("SUDO AS $member")
+            val group = subject as Group
+            if (!group.contains(member)) { reply("群里没这人！"); return@startsWith }
+            val realMember = group[member]!!
+
+            (bot.eventChannel.asChannel() as Channel<BotEvent>).send(
+                GroupMessageEvent(
+                    senderName,
+                    realMember.permission,
+                    realMember,
+                    buildMessageChain { add(event.message[MessageSource]!!); add(message) },
+                    time
+                )
+            )
         }
     }
     matching(Regex("/op \\w+")).and(content { sender.id in config[AppSpec.ops] }).reply {
