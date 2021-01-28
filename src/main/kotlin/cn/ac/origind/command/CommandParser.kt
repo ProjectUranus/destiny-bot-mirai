@@ -1,7 +1,6 @@
 package cn.ac.origind.command
 
 class CommandParser(val command: String) {
-    var index = 0
     var internal = command
 
     init {
@@ -13,15 +12,30 @@ class CommandParser(val command: String) {
         internal = internal.trim()
     }
 
-    /**
-     * Take a string argument
-     */
-    fun take(): String {
-        for (i in internal.indices) {
-            if (internal[i] == ' ') {
-                val temp = internal.substring(i)
-            }
-        }
+    fun <T> parse(type: ArgumentType<T>): T {
+        return type.parse.invoke(this)
     }
 
+    /**
+     * Take a string argument and jump
+     */
+    fun take(): String {
+        val index = internal.indexOf(' ')
+        if (index == -1) {
+            if (internal.isBlank()) throw IndexOutOfBoundsException("Command parser is complete")
+            val temp = internal.trim()
+            internal = ""
+            return temp
+        }
+        val temp = internal.substring(0, index)
+        internal = internal.substring(index + 1).trim()
+        return temp
+    }
+
+    fun take(n: Int): Array<String> {
+        val arr = Array(n) { "" }
+        for (i in 0 until n)
+            arr[i] = take()
+        return arr
+    }
 }
