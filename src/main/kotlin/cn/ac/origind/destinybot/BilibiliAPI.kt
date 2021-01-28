@@ -22,7 +22,3 @@ suspend fun getLatestWeeklyReportURL(): String {
 suspend fun getLiveRoomInfo(id: Long): LiveRoomInfo {
     return getJson<LiveResponse>("https://api.live.bilibili.com/room/v1/Room/get_info?id=$id", false).data
 }
-
-suspend fun getLiveRoomInfo(id: Long): LiveRoomInfo {
-    return getJson<LiveResponse>("https://api.live.bilibili.com/room/v1/Room/get_info?id=$id", false).data
-}
