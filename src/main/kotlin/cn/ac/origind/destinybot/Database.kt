@@ -21,7 +21,7 @@ object Database {
     fun translate(name: String): DisplayProperties? {
         val itemDefinitionCollection = DestinyBot.db.getCollection("DestinyInventoryItemDefinition_eng")
         return itemDefinitionCollection.find("""{"displayProperties.name": "$name"}""").map { document ->
-            getItemDefinition(document["_id"].toString())?.displayProperties
+            getItemDefinition(document["_id"].toString()).displayProperties
         }.firstOrNull()
     }
 

@@ -4,4 +4,4 @@
 
 # 协议
 
-(GPLv3)[LICENSE]，肯定的。
+[GPLv3](LICENSE)，肯定的。
