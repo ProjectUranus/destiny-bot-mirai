@@ -16,7 +16,7 @@ suspend fun getLatestArticle(): String {
 suspend fun getLatestWeeklyReportURL(): String {
     val regex = Regex("<img data-src=\"(//(\\w+:?\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!\\-/]))?)\" width=\"\\d\\d\\d\\d\"")
 
-    return regex.find(getLatestArticle())?.groupValues?.get(1)!!
+    return regex.find(getLatestArticle())?.groupValues?.lastOrNull()!!
 }
 
 suspend fun getLiveRoomInfo(id: Long): LiveRoomInfo {

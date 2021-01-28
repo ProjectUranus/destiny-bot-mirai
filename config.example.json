@@ -1,0 +1,24 @@
+{
+  "account": {
+    "qq": 100000,
+    "password": ""
+  },
+  "minecraft": {
+    "default": {
+      "host": "",
+      "port": 25565
+    },
+    "servers": {
+      "example": {
+        "host": "",
+        "port": 25565
+      }
+    }
+  },
+  "dict": {
+    "aliases": {
+    },
+    "userAliases": {
+    }
+  }
+}
