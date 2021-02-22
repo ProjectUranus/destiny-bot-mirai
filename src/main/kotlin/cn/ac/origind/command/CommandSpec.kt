@@ -4,6 +4,7 @@ open class CommandSpec(val name: String) {
     val subcommands = mutableListOf<CommandSpec>()
     val subcommandMap = mutableMapOf<String, CommandSpec>()
     var permission: String = "destinybot.$name"
+    val arguments = mutableListOf<ArgumentContext<*>>()
 
     open fun parse(parser: CommandParser, executor: CommandExecutor, context: CommandContext) {
         val sub = parser.take(false)
@@ -28,8 +29,8 @@ open class CommandSpec(val name: String) {
         return spec
     }
 
-    fun argument(name: String, type: ArgumentType<*>) {
-        
+    fun argument(name: String, type: ArgumentType<*>, description: String? = null, optional: Boolean = false) {
+        arguments += ArgumentContext(name, type, optional, description)
     }
 }
 
