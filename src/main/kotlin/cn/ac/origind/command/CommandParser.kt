@@ -19,16 +19,18 @@ class CommandParser(val command: String) {
     /**
      * Take a string argument and jump
      */
-    fun take(): String {
+    fun take(move: Boolean = true): String {
         val index = internal.indexOf(' ')
         if (index == -1) {
             if (internal.isBlank()) throw IndexOutOfBoundsException("Command parser is complete")
             val temp = internal.trim()
-            internal = ""
+            if (move)
+                internal = ""
             return temp
         }
         val temp = internal.substring(0, index)
-        internal = internal.substring(index + 1).trim()
+        if (move)
+            internal = internal.substring(index + 1).trim()
         return temp
     }
 

@@ -9,6 +9,7 @@ import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import io.ktor.client.features.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
+import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.message.data.content
@@ -50,9 +51,11 @@ fun MessageEventSubscribersBuilder.destinyCommands() {
     }
     case("我的信息") {
         val user = DataStore[sender.id]
-        if (user.destinyMembershipId == null) reply("你还没有绑定账号! 请搜索一个玩家并绑定之。")
-        else {
-            DestinyBot.replyProfile(user.destinyMembershipType, user.destinyMembershipId!!, this)
+        if (user.destinyMembershipId.isEmpty()) {
+            if (subject is Group && (!(subject as Group).contains(3320645904))) // CY BOT
+                reply("你还没有绑定账号! 请搜索一个玩家并绑定之。")
+        } else {
+            DestinyBot.replyProfile(user.destinyMembershipType, user.destinyMembershipId, this)
         }
     }
     matching(Regex("绑定 (\\d+)")) {
