@@ -2,12 +2,12 @@ package cn.ac.origind.minecraft
 
 import cn.ac.origind.destinybot.DestinyBot.config
 import cn.ac.origind.destinybot.exception.joinToString
-import com.github.steveice10.mc.auth.service.AuthenticationService
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
 import com.github.steveice10.mc.protocol.data.SubProtocol
 import com.github.steveice10.mc.protocol.data.message.Message
 import com.github.steveice10.mc.protocol.data.message.TextMessage
+import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo
 import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
 import com.github.steveice10.packetlib.Client
@@ -16,13 +16,16 @@ import kotlinx.coroutines.*
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 
 object MinecraftClientLogin {
     val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
 
-    suspend fun statusAsync(contact: Contact, host: String = config[MinecraftSpec.default].host!!, port: Int = config[MinecraftSpec.default].port) = withContext(Dispatchers.Default) {
+    suspend fun statusAsync(
+        contact: Contact,
+        host: String = config[MinecraftSpec.default].host!!,
+        port: Int = 25565
+    ) = withContext(Dispatchers.Default) {
         try {
             GlobalScope.launch {
                 status(contact, host, port)
@@ -41,34 +44,56 @@ object MinecraftClientLogin {
 
     suspend fun status(contact: Contact, host: String, port: Int) {
         val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
-        val service = AuthenticationService()
-        service.baseUri = "https://skin.youtiao.dev/api/yggdrasil/authserver/".toHttpUrl().toUri()
 
+        var infoVar: ServerStatusInfo? = null
+        var pingTimeVar: Long? = null
 
-
-        client.session.setFlag(MinecraftConstants.SERVER_INFO_HANDLER_KEY,
-            ServerInfoHandler { session, info ->
-                contact.launch {
-                    contact.sendMessage(
-                        buildMessageChain {
-                            info.iconPng?.let { icon -> add(contact.uploadImage(icon.toExternalResource("png"))) }
-                            add(mapMessageToRaw(info.description).replace(Regex("§[\\w\\d]"), ""))
-                            add(", ${info.versionInfo.versionName.replace(Regex("((thermos|cauldron|craftbukkit|mcpc|kcauldron|fml),?)+"), "")}\n")
-                            add("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}\n")
-                            if (info.playerInfo.onlinePlayers > 0) {
-                                add(info.playerInfo.players.joinToString(", ") { it.name })
-                            }
-                        }
-                    )
-                }
+        client.session.setFlag(
+            MinecraftConstants.SERVER_INFO_HANDLER_KEY,
+            ServerInfoHandler { _, i ->
+                infoVar = i
             })
 
-        client.session.setFlag(MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
-            ServerPingTimeHandler { session, pingTime ->
-                contact.launch { contact.sendMessage("服务器延迟为 ${pingTime}ms") } })
+        client.session.setFlag(
+            MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
+            ServerPingTimeHandler { _, p ->
+                pingTimeVar = p
+            })
 
         client.session.connect(true)
 
         delay(1000)
+
+        if (infoVar == null || pingTimeVar == null) {
+            contact.launch {
+                contact.sendMessage("请求超时，请重试。")
+            }
+            return
+        }
+
+        val info = infoVar!!
+        val pingTime = pingTimeVar!!
+
+        contact.launch {
+            contact.sendMessage(
+                buildMessageChain {
+                    info.iconPng?.let { icon -> add(contact.uploadImage(icon.toExternalResource("png"))) }
+                    add(mapMessageToRaw(info.description).replace(Regex("§[\\w\\d]"), ""))
+                    add(
+                        ", ${
+                            info.versionInfo.versionName.replace(
+                                Regex("((thermos|cauldron|craftbukkit|mcpc|kcauldron|fml),?)+"),
+                                ""
+                            )
+                        }\n"
+                    )
+                    add("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}\n")
+                    if (info.playerInfo.onlinePlayers > 0) {
+                        add(info.playerInfo.players.joinToString(", ") { it.name })
+                    }
+                }
+            )
+            contact.sendMessage("服务器延迟为 ${pingTime}ms")
+        }
     }
 }
