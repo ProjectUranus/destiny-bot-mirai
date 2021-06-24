@@ -18,7 +18,6 @@ import cn.ac.origind.minecraft.minecraftCommands
 import cn.ac.origind.uno.initUnoGame
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.mojang.brigadier.CommandDispatcher
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.uchuhimo.konf.Config
@@ -106,8 +105,6 @@ object DestinyBot {
     } }
 
     val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(Locale.PRC).withZone(ZoneId.systemDefault())
-
-    val dispatcher = CommandDispatcher<MessageEvent>()
     val mongoClient = KMongo.createClient()
     val db = mongoClient.getDatabase("destiny2")
     val activities = hashMapOf<String, String>()

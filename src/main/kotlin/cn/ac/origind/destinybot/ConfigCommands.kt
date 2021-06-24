@@ -9,8 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Group
-import net.mamoe.mirai.contact.getMember
-import net.mamoe.mirai.event.Event
 import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import net.mamoe.mirai.event.events.BotEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
@@ -48,7 +46,7 @@ fun MessageEventSubscribersBuilder.configCommands() {
                 }
             }
             if (!anyOnline) append("你喜爱的主播们都不在直播哦O(∩_∩)O")
-        }
+        }.trim()
     }
     startsWith("sudo ") {
         return@startsWith
