@@ -112,7 +112,7 @@ object DeskRenderer {
         val metrics = tempGraphics.getFontMetrics(font)
 
         // text
-        val longest = nicks.maxBy { it.length }?.length ?: 0
+        val longest = nicks.maxByOrNull(String::length)?.length ?: 0
 
         val margin = 120
 
@@ -127,7 +127,7 @@ object DeskRenderer {
         var textPointY = 32
 
         // blank card
-        val maxWidth = enumerable.maxBy { it.width }?.width ?: 0
+        val maxWidth = enumerable.maxByOrNull { it.width }?.width ?: 0
         val baseHeight = enumerable.first().height
         var blankCardPointX = beforeRenderBlankCardWidth
         var blankCardPointY = 0

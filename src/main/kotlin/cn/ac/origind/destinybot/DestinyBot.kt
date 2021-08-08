@@ -7,6 +7,7 @@ import cn.ac.origind.destinybot.config.BilibiliSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.debug.LatencyEventListener
+import cn.ac.origind.destinybot.features.bilibili.bilibiliCommands
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
@@ -189,9 +190,11 @@ object DestinyBot {
 //            doudizhuGames()
             configCommands()
             destinyCommands()
+            bilibiliCommands()
 //            unoGames()
             minecraftCommands()
             curseForgeCommands()
+            manageCommands()
         }
     }
 

@@ -88,7 +88,7 @@ object UnoRule {
 
         val valueWithCards = valids.asSequence().map { it to GetValue(it, lastCard, valids, cards) }
 
-        var maxs = valueWithCards.filter { pair -> pair.second == valueWithCards.maxBy { it.second }?.second }
+        var maxs = valueWithCards.filter { pair -> pair.second == valueWithCards.maxByOrNull { it.second }?.second }
         return maxs.first().first
 //        }
     }
