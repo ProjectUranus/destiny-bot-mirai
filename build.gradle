@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.30'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
 }
 
 group 'cn.ac.origind.destinybot'
@@ -33,7 +33,7 @@ dependencies {
     implementation 'com.github.Steveice10:MCProtocolLib:1.16.4-1'
     implementation "io.ktor:ktor-server-netty:$ktorVersion"
     implementation "io.ktor:ktor-server-core:$ktorVersion"
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
 compileKotlin {

@@ -38,7 +38,7 @@ private fun buildMinecraftVersionMessage(version: String, builder: StringBuilder
 
 fun MessageEventSubscribersBuilder.minecraftCommands() {
     case("/ping") {
-        MinecraftClientLogin.statusAsync(subject)
+        MinecraftClientLogin.statusAsync(subject, config[MinecraftSpec.default].host!!, config[MinecraftSpec.default].port)
     }
     startsWith("/ping ") {
         val address = it
@@ -58,7 +58,7 @@ fun MessageEventSubscribersBuilder.minecraftCommands() {
                 reply(e.localizedMessage)
             }
         } else {
-            MinecraftClientLogin.statusAsync(subject, address)
+            MinecraftClientLogin.statusAsync(subject, address, 25565)
         }
     }
     case("/release") {

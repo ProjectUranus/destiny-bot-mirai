@@ -24,7 +24,7 @@ object MinecraftClientLogin {
     suspend fun statusAsync(
         contact: Contact,
         host: String = config[MinecraftSpec.default].host!!,
-        port: Int = config[MinecraftSpec.default].port
+        port: Int = 25565
     ) = withContext(Dispatchers.Default) {
         try {
             GlobalScope.launch {
