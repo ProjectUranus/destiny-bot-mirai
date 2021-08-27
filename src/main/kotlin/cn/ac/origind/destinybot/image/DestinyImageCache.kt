@@ -2,7 +2,7 @@ package cn.ac.origind.destinybot.image
 
 import cn.ac.origind.destinybot.DestinyBot.bot
 import cn.ac.origind.destinybot.client
-import cn.ac.origind.destinybot.rawClient
+import cn.ac.origind.destinybot.client
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -48,7 +48,7 @@ suspend fun getImageFile(icon: String, proxy: Boolean = true): File = withContex
         url(if (icon.startsWith("http")) icon else "https://www.bungie.net$icon")
     }.build()
 
-    val response = if (proxy) client.newCall(request).execute() else rawClient.newCall(request).execute()
+    val response = if (proxy) client.newCall(request).execute() else client.newCall(request).execute()
     Files.write(path, response.body?.bytes()!!, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
 
     return@withContext path.toFile()

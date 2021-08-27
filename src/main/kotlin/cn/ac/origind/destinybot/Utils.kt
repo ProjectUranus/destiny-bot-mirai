@@ -54,7 +54,7 @@ suspend inline fun getBody(url: String, proxy: Boolean = true, crossinline init:
         url(url)
         init()
     }.build()
-    val call = (if(proxy)client else rawClient).newCall(request)
+    val call = (if(proxy)client else client).newCall(request)
     val response = call.execute()
     groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
     response.body?.string() ?: ""
@@ -65,7 +65,7 @@ suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, cross
         url(url)
         init()
     }.build()
-    val call = (if(proxy)client else rawClient).newCall(request)
+    val call = (if(proxy)client else client).newCall(request)
     val response = call.execute()
     groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
     val json = response.body?.string()!!

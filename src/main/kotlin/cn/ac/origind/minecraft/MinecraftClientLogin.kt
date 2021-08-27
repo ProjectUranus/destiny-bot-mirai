@@ -12,7 +12,8 @@ import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
 import com.github.steveice10.packetlib.Client
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
@@ -25,11 +26,9 @@ object MinecraftClientLogin {
         contact: Contact,
         host: String = config[MinecraftSpec.default].host!!,
         port: Int = 25565
-    ) = withContext(Dispatchers.Default) {
+    ) {
         try {
-            GlobalScope.launch {
-                status(contact, host, port)
-            }
+            status(contact, host, port)
         } catch (e: Exception) {
             contact.sendMessage("连接失败: " + e.joinToString())
         }

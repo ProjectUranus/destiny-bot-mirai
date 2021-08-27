@@ -40,8 +40,6 @@ import org.litote.kmongo.KMongo
 import org.litote.kmongo.findOne
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.net.InetSocketAddress
-import java.net.Proxy
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -60,18 +58,6 @@ val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
 val client = OkHttpClient.Builder()
-    .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
-    .connectTimeout(10, TimeUnit.SECONDS)
-    .readTimeout(10, TimeUnit.SECONDS)
-    .retryOnConnectionFailure(true)
-    .followRedirects(true)
-    .followSslRedirects(true)
-    .proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", 1080)))
-    .callTimeout(10, TimeUnit.SECONDS)
-    .eventListener(LatencyEventListener())
-    .build()
-
-val rawClient = OkHttpClient.Builder()
     .cache(Cache(directory = File("web_cache"), maxSize = 10L * 1024L * 1024L))
     .connectTimeout(10, TimeUnit.SECONDS)
     .readTimeout(10, TimeUnit.SECONDS)
