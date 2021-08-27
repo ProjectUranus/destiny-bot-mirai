@@ -292,14 +292,14 @@ object DeskRenderer {
         val textPointY = 40
 
         // last card
-        val cardWidth = lastCard?.width ?: 1
+        val cardWidth = lastCard.width
         val width = beforeRenderLastCardWidth + cardWidth
-        var height = lastCard?.height ?: 1
+        var height = lastCard.height
 
         val bitmap = BufferedImage(width, height, TYPE_INT_ARGB)
         val grap = bitmap.createGraphics()
 
-        grap.RenderImageWithShadow(lastCard!!, beforeRenderLastCardWidth, 0, 5f, Opacity)
+        grap.RenderImageWithShadow(lastCard, beforeRenderLastCardWidth, 0, 5f, Opacity)
         grap.color = Color.GRAY
         grap.font = font
         grap.drawString(text, textPointX, textPointY)

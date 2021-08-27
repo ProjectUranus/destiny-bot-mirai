@@ -8,7 +8,10 @@ import cn.ac.origind.destinybot.image.getImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import io.ktor.client.features.*
 import io.ktor.network.sockets.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.MessageEventSubscribersBuilder
 import net.mamoe.mirai.message.data.buildMessageChain
@@ -117,7 +120,7 @@ fun MessageEventSubscribersBuilder.destinyCommands() {
         if (profileQuerys[sender.id].isNullOrEmpty())
             return@matching
         val packet = this
-        GlobalScope.launch {
+        bot.launch {
             val result = profileQuerys[packet.sender.id]!!
             val index = packet.message.content.toInt() - 1
             if (result.size < index + 1) return@launch
@@ -136,7 +139,7 @@ fun MessageEventSubscribersBuilder.destinyCommands() {
     startsWith("perk") {
         if (it.isBlank()) return@startsWith
         for (item in searchItemDefinitions(it)) {
-            GlobalScope.launch(Dispatchers.Default) {
+            bot.launch {
                 try {
                     val perks = getItemPerks(item._id!!)
                     DestinyBot.replyPerks(item, perks, this@startsWith)
@@ -184,7 +187,7 @@ fun MessageEventSubscribersBuilder.destinyCommands() {
     startsWith("/ds search ") {
         val packet = this
         profileQuerys.remove(packet.sender.id)
-        GlobalScope.launch {
+        subject.launch {
             val criteria = packet.message.content.removePrefix("/ds search ")
             val result =
                 withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
@@ -198,7 +201,7 @@ fun MessageEventSubscribersBuilder.destinyCommands() {
 
             // Filter Destiny 2 players
             val players = mutableSetOf<DestinyMembershipQuery>()
-            players.addAll(profiles ?: emptyList())
+            players.addAll(profiles)
             result.map { profile ->
                 launch {
                     try {
