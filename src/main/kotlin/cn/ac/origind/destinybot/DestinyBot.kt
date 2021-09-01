@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.apex.apexCommands
 import cn.ac.origind.destinybot.command.Query
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
@@ -179,6 +180,7 @@ object DestinyBot {
             bilibiliCommands()
 //            unoGames()
             minecraftCommands()
+            apexCommands()
             curseForgeCommands()
             manageCommands()
         }
