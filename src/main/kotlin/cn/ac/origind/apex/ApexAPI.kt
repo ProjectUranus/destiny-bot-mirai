@@ -18,7 +18,7 @@ fun localizeMapName(map: String) = when(map) {
 }
 
 fun localizeRankName(rank: String) = when(rank) {
-    "Copper" -> "青铜"
+    "Bronze" -> "青铜"
     "Silver" -> "白银"
     "Gold" -> "黄金"
     "Platinum" -> "铂金"
