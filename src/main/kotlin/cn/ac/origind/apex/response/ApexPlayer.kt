@@ -26,7 +26,7 @@ data class GlobalData (
     val rank: Arena,
     val arena: Arena,
     val battlepass: Battlepass,
-    val badges: List<Badge>
+    val badges: List<Badge>?
 )
 
 @JsonClass(generateAdapter = true)
