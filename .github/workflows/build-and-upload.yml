@@ -1,0 +1,25 @@
+name: 'build and upload artifact'
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: "ubuntu-20.04"
+    steps:
+      - name: "Checkout Repository"
+        uses: "actions/checkout@v2.3.4"
+      - name: "Setup JDK 16"
+        uses: "actions/setup-java@v2.1.0"
+        with:
+          distribution: "adopt"
+          java-version: "16"
+      - name: "Give the permission!"
+        run: "chmod +x gradlew"
+      - name: "Clean Build"
+        run: "./gradlew clean build -x test"
+      - name: "Upload artifact"
+        uses: "actions/upload-artifact@v2"
+        with:
+          name: "build"
+          path: "./build/libs/*.jar"
