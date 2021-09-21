@@ -14,6 +14,8 @@ jobs:
         with:
           distribution: "adopt"
           java-version: "16"
+      - name: "Give the permission!"
+        run: "chmod +x gradlew"
       - name: "Clean Build"
         run: "./gradlew clean build"
       - name: "Upload artifact"
