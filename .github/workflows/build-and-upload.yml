@@ -17,7 +17,7 @@ jobs:
       - name: "Give the permission!"
         run: "chmod +x gradlew"
       - name: "Clean Build"
-        run: "./gradlew clean build"
+        run: "./gradlew wrapper clean build"
       - name: "Upload artifact"
         uses: "actions/upload-artifact@v2"
         with:
