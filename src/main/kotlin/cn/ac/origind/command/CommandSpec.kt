@@ -4,18 +4,32 @@ open class CommandSpec(val name: String) {
     val subcommands = mutableListOf<CommandSpec>()
     val subcommandMap = mutableMapOf<String, CommandSpec>()
     var permission: String = "destinybot.$name"
+
     val arguments = mutableListOf<ArgumentContext<*>>()
+    val container by lazy { ArgumentContainer(arguments) }
+    var execute: (ArgumentContainer, CommandExecutor, CommandContext) -> Unit = { _, _, _ -> }
+
+    var description: String? = null
 
     open fun parse(parser: CommandParser, executor: CommandExecutor, context: CommandContext) {
-        val sub = parser.take(false)
-        if (subcommandMap.containsKey(sub)) {
-            parser.take()
-            subcommandMap[sub]?.parse(parser, executor, context)
+        if (parser.hasMore()) {
+            val sub = parser.take(false)
+            if (subcommandMap.containsKey(sub)) {
+                parser.take()
+                subcommandMap[sub]?.parse(parser, executor, context)
+            } else {
+                container.parse(parser)
+                execute(container, executor, context)
+            }
+        } else {
+            container.parse(parser)
+            execute(container, executor, context)
         }
     }
 
     open fun getHelp() = buildString {
     }
+
 
     fun registerSubcommand(command: CommandSpec) {
         subcommands += command

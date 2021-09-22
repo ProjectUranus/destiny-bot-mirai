@@ -1,5 +1,6 @@
 package cn.ac.origind.destinybot
 
+import cn.ac.origind.destinybot.features.bilibili.getLatestWeeklyReportURL
 import cn.ac.origind.destinybot.image.getImage
 import kotlinx.coroutines.runBlocking
 import org.junit.Test

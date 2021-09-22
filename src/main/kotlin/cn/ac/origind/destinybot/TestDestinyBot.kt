@@ -1,22 +1,18 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.destinybot.DestinyBot.logger
-import cn.ac.origind.destinybot.image.toImage
-import kotlinx.coroutines.runBlocking
-import java.awt.Color
-import java.io.File
-import javax.imageio.ImageIO
+import cn.ac.origind.command.*
 
-val normalColor = Color(255, 255, 255)
-val pveColor = Color(87, 145, 190)
-val pvpColor = Color(245, 91, 91)
-val godColor = Color(227, 202, 87)
-
-fun main(args: Array<String>) {
-    runBlocking {
-        fetchWishlist()
-        ImageIO.write(Database.getItemDefinition("153979397").toImage(getItemPerks("153979397")), "png", File("output.png"))
-        logger.info("Success")
-    //        println(getItemPerks("3089417789"))
+fun main() {
+    val c = command("地图轮换") {
+        description = "查询 Apex 当前地图轮换"
+        argument("player", StringArgument)
+        argument("test", BooleanArgument, "", true)
+        argument("untest", IntArgument)
+        execute = { c, _, _ ->
+            println(c.getArgument<String>("player"))
+        }
     }
+    CommandManager.register(c)
+    CommandManager.buildCache()
+    CommandManager.parse("地图轮换 123 45S", ConsoleCommandExecutor, CommandContext(0, 0, "地图轮换 123", 0))
 }

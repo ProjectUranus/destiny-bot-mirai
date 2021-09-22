@@ -1,5 +1,7 @@
-package cn.ac.origind.destinybot
+package cn.ac.origind.destinybot.features.bilibili
 
+import cn.ac.origind.destinybot.getBody
+import cn.ac.origind.destinybot.getJson
 import cn.ac.origind.destinybot.response.bilibili.Articles
 import cn.ac.origind.destinybot.response.bilibili.LiveResponse
 import cn.ac.origind.destinybot.response.bilibili.LiveRoomInfo

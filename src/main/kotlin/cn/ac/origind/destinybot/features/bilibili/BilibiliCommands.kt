@@ -2,7 +2,6 @@ package cn.ac.origind.destinybot.features.bilibili
 
 import cn.ac.origind.destinybot.DestinyBot
 import cn.ac.origind.destinybot.config.BilibiliSpec
-import cn.ac.origind.destinybot.getLiveRoomInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.mamoe.mirai.event.MessageEventSubscribersBuilder

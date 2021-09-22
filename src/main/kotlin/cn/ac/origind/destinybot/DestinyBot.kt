@@ -17,7 +17,6 @@ import cn.ac.origind.minecraft.MinecraftSpec
 import cn.ac.origind.minecraft.curseForgeCommands
 import cn.ac.origind.minecraft.initMinecraftVersion
 import cn.ac.origind.minecraft.minecraftCommands
-import cn.ac.origind.uno.initUnoGame
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.squareup.moshi.Moshi
@@ -97,7 +96,7 @@ object DestinyBot {
     val db = mongoClient.getDatabase("destiny2")
     val activities = hashMapOf<String, String>()
     val lores = hashMapOf<String, String>()
-    val server = DestinyBotServer()
+    val searchToWeaponMap = ConcurrentHashMap<String, String>()
 
     @ExperimentalStdlibApi
     @JvmStatic
@@ -105,7 +104,6 @@ object DestinyBot {
         DataStore.init()
         bot.login()
         logger.info("Logged in")
-        initUnoGame()
         initMinecraftVersion()
         fetchWishlist()
         logger.info("Fetched Little Light Wishlist")

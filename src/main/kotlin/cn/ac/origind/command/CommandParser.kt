@@ -12,9 +12,8 @@ class CommandParser(val command: String) {
         internal = internal.trim()
     }
 
-    fun <T> parse(type: ArgumentType<T>): T {
-        return type.parse.invoke(this)
-    }
+    fun hasMore() =
+        internal.trim().isNotBlank()
 
     /**
      * Take a string argument and jump

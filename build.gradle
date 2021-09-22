@@ -6,12 +6,14 @@ plugins {
 
 group 'cn.ac.origind.destinybot'
 version '1.0-SNAPSHOT'
-mainClassName = 'cn.ac.origind.destinybot.DestinyBot'
 
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
+}
 
+application {
+    mainClass = 'cn.ac.origind.destinybot.DestinyBot'
 }
 
 sourceCompatibility = targetCompatibility = "16"
@@ -34,6 +36,8 @@ dependencies {
     implementation 'com.github.Steveice10:MCProtocolLib:1.16.4-1'
     implementation "io.ktor:ktor-server-netty:$ktorVersion"
     implementation "io.ktor:ktor-server-core:$ktorVersion"
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
+    implementation 'com.projecturanus:suffixtree:1.0'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 

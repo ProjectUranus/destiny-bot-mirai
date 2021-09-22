@@ -2,5 +2,6 @@ package cn.ac.origind.command
 
 interface CommandExecutor {
     fun hasPermission(node: String): Boolean
-    fun sendMessage(text: String)
+    suspend fun sendMessage(text: String)
+    suspend fun sendPrivateMessage(text: String) = sendMessage(text)
 }
