@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import kotlinx.coroutines.*
+import me.xdrop.fuzzywuzzy.FuzzySearch
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -35,6 +36,7 @@ object CommandManager: CoroutineScope {
                 commandIndexCache[index] = command
                 searchTree.put(it, index)
             }
+            commandNameCache = commandNameCache + command.aliases.associateWith { command }
         }
     }
 
@@ -59,6 +61,12 @@ object CommandManager: CoroutineScope {
         }
         if (commandMap.containsKey(main)) {
             launch(handler) { withTimeout(10_000) { commandMap[main]?.parse(parser, executor, context) } }
+        } else {
+            val top = FuzzySearch.extractTop(main, commandNameCache.keys, 1, 90)
+            if (top.isNotEmpty()) {
+                executor.sendMessage("未找到命令 $main, 您要找的是不是 ${top.first().string}(匹配度 ${top.first().score}%")
+            }
+
         }
     }
 
