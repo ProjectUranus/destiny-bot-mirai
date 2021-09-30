@@ -1,4 +1,4 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 import cn.ac.origind.destinybot.DestinyBot.bot
 

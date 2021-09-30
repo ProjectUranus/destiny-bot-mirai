@@ -1,4 +1,4 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 data class ArgumentContext<T>(val name: String, val type: ArgumentType<T>, val optional: Boolean = false, val description: String? = null) {
     override fun equals(other: Any?): Boolean {

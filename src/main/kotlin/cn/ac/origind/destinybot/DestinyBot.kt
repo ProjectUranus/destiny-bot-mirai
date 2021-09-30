@@ -1,6 +1,5 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.apex.apexCommands
 import cn.ac.origind.destinybot.command.Query
 import cn.ac.origind.destinybot.config.AccountSpec
 import cn.ac.origind.destinybot.config.AppSpec
@@ -8,7 +7,6 @@ import cn.ac.origind.destinybot.config.BilibiliSpec
 import cn.ac.origind.destinybot.config.DictSpec
 import cn.ac.origind.destinybot.data.DataStore
 import cn.ac.origind.destinybot.debug.LatencyEventListener
-import cn.ac.origind.destinybot.features.bilibili.bilibiliCommands
 import cn.ac.origind.destinybot.image.toImage
 import cn.ac.origind.destinybot.response.bungie.DestinyMembershipQuery
 import cn.ac.origind.destinybot.response.lightgg.ItemDefinition
@@ -33,6 +31,15 @@ import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.BotConfiguration
+import net.origind.destinybot.api.command.CommandContext
+import net.origind.destinybot.api.command.CommandManager
+import net.origind.destinybot.api.command.UserCommandExecutor
+import net.origind.destinybot.core.HelpCommand
+import net.origind.destinybot.features.apex.MapRotationCommand
+import net.origind.destinybot.features.apex.ProfileCommand
+import net.origind.destinybot.features.bilibili.StreamerCommand
+import net.origind.destinybot.features.destiny.StoriesCommand
+import net.origind.destinybot.features.destiny.WeeklyReportCommand
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.bson.Document
@@ -116,13 +123,32 @@ object DestinyBot {
             println(activities.keys.toString())
         }
         bot.subscribeMessages()
+        registerCommands()
+        CommandManager.buildCache()
+        logger.info("注册的命令: ${CommandManager.commands.joinToString { it.name }}")
         bot.join()
         bot.close()
+    }
+
+    private fun registerCommands() {
+        CommandManager.register(HelpCommand)
+
+        CommandManager.register(MapRotationCommand)
+        CommandManager.register(ProfileCommand)
+
+        CommandManager.register(StreamerCommand)
+
+        CommandManager.register(StoriesCommand)
+        CommandManager.register(WeeklyReportCommand)
     }
 
     @ExperimentalStdlibApi
     private fun Bot.subscribeMessages() {
         eventChannel.subscribeMessages {
+            always {
+                val context = CommandContext(sender.id, subject.id, it, time.toLong())
+                CommandManager.parse(it, UserCommandExecutor(sender), context)
+            }
             /*
             content(matching(Regex("[？?¿]*")).filter) {
                 reply("你扣个锤子问号？")
@@ -175,10 +201,8 @@ object DestinyBot {
 //            doudizhuGames()
             configCommands()
             destinyCommands()
-            bilibiliCommands()
 //            unoGames()
             minecraftCommands()
-            apexCommands()
             curseForgeCommands()
             manageCommands()
         }

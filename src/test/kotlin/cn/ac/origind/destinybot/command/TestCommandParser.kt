@@ -1,6 +1,6 @@
 package cn.ac.origind.destinybot.command
 
-import cn.ac.origind.command.CommandParser
+import net.origind.destinybot.api.command.CommandParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test

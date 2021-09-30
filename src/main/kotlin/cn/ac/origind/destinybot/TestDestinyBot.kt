@@ -1,18 +1,20 @@
 package cn.ac.origind.destinybot
 
-import cn.ac.origind.command.*
+import net.origind.destinybot.api.command.*
 
 fun main() {
-    val c = command("地图轮换") {
+    val c = command {
+        name = "地图轮换"
         description = "查询 Apex 当前地图轮换"
         argument("player", StringArgument)
         argument("test", BooleanArgument, "", true)
         argument("untest", IntArgument)
-        execute = { c, _, _ ->
+        executor = { c, _, _ ->
             println(c.getArgument<String>("player"))
         }
     }
     CommandManager.register(c)
     CommandManager.buildCache()
-    CommandManager.parse("地图轮换 123 45S", ConsoleCommandExecutor, CommandContext(0, 0, "地图轮换 123", 0))
+    CommandManager.parse("地图轮换 123 45", ConsoleCommandExecutor, CommandContext(0, 0, "地图轮换 123", 0))
+    println(c.getHelp())
 }

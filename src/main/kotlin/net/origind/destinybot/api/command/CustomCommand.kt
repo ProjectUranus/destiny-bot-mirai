@@ -1,10 +1,5 @@
 package net.origind.destinybot.api.command
 
-interface CustomCommand {
-    /**
-     * 可能的前缀，加速匹配速度
-     */
-    fun getPossibleNames(): Iterable<String>
-
-    fun parse(command: String) {}
+interface CustomCommand: Command {
+    suspend fun parse(main: String, parser: CommandParser, executor: CommandExecutor, context: CommandContext)
 }

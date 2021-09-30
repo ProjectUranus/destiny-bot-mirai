@@ -1,4 +1,4 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
     val argumentContextMap: Map<String, ArgumentContext<*>>
@@ -24,11 +24,11 @@ class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
             if (!arg.optional) {
                 if (internal != null) {
                     argumentMap[arg.name] =
-                        arg.type.parse(internal) ?: throw ArgumentParseException("Cannot parse required argument ${arg.name}")
+                        arg.type.parse(internal) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
                     internal = null
                 } else {
                     argumentMap[arg.name] =
-                        arg.type.parse(parser.take()) ?: throw ArgumentParseException("Cannot parse required argument ${arg.name}")
+                        arg.type.parse(parser.take()) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
                 }
                 parsedRequiredArguments++
             } else {
@@ -51,7 +51,7 @@ class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
             deque.removeFirst()
         }
         if (parsedRequiredArguments != requiredArgumentsToParse) {
-            throw ArgumentParseException("Not enough arguments, required: $requiredArgumentsToParse, actual: $parsedRequiredArguments")
+            throw ArgumentParseException("命令参数不足，需要: $requiredArgumentsToParse, 实际: $parsedRequiredArguments")
         }
     }
 

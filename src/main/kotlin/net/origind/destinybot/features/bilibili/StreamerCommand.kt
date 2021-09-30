@@ -1,14 +1,18 @@
-package cn.ac.origind.destinybot.features.bilibili
+package net.origind.destinybot.features.bilibili
 
 import cn.ac.origind.destinybot.DestinyBot
 import cn.ac.origind.destinybot.config.BilibiliSpec
+import cn.ac.origind.destinybot.features.bilibili.getLiveRoomInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.mamoe.mirai.event.MessageEventSubscribersBuilder
+import net.origind.destinybot.api.command.AbstractCommand
+import net.origind.destinybot.api.command.ArgumentContainer
+import net.origind.destinybot.api.command.CommandContext
+import net.origind.destinybot.api.command.CommandExecutor
 
-fun MessageEventSubscribersBuilder.bilibiliCommands() {
-    case("下饭主播").reply {
-        buildString {
+object StreamerCommand: AbstractCommand("下饭主播") {
+    override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
+        executor.sendMessage(buildString {
             var anyOnline = false
             for (id in DestinyBot.config[BilibiliSpec.lives]) {
                 val roomInfo = withContext(Dispatchers.IO) {
@@ -20,6 +24,6 @@ fun MessageEventSubscribersBuilder.bilibiliCommands() {
                 }
             }
             if (!anyOnline) append("你喜爱的主播们都不在直播哦O(∩_∩)O")
-        }.trim()
+        }.trim())
     }
 }

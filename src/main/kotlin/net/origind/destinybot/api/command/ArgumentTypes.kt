@@ -1,4 +1,4 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 object BooleanArgument: ArgumentType<Boolean>(Boolean::class.java, {toBooleanStrictOrNull()})
 

@@ -1,4 +1,4 @@
-package cn.ac.origind.apex.response
+package net.origind.destinybot.features.apex.response
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

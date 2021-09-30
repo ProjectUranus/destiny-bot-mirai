@@ -1,10 +1,10 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 object ConsoleCommandExecutor : CommandExecutor {
     // Console has all permissions
     override fun hasPermission(node: String): Boolean = true
 
-    override suspend fun sendMessage(text: String) {
+    override fun sendMessage(text: String) {
         println(text)
     }
 }

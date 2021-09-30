@@ -1,4 +1,4 @@
-package cn.ac.origind.command
+package net.origind.destinybot.api.command
 
 class CommandParser(val command: String) {
     var internal = command
