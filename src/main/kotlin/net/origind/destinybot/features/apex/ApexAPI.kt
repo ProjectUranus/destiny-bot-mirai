@@ -1,6 +1,6 @@
 package net.origind.destinybot.features.apex
 
-import cn.ac.origind.destinybot.getJson
+import net.origind.destinybot.core.getJson
 import net.origind.destinybot.features.apex.response.ApexMapRotation
 import net.origind.destinybot.features.apex.response.ApexPlayer
 import java.io.IOException

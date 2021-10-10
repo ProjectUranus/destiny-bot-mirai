@@ -1,3 +1,8 @@
 package net.origind.destinybot.api.command
 
-open class ArgumentType<T>(val clazz: Class<T>, val parse: String.() -> T?)
+interface ArgumentType<T> {
+    val clazz: Class<T>
+
+    @Throws(ArgumentParseException::class)
+    fun parse(literal: String): T
+}

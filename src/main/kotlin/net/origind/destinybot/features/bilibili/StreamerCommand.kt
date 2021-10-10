@@ -1,8 +1,7 @@
 package net.origind.destinybot.features.bilibili
 
-import cn.ac.origind.destinybot.DestinyBot
-import cn.ac.origind.destinybot.config.BilibiliSpec
-import cn.ac.origind.destinybot.features.bilibili.getLiveRoomInfo
+import net.origind.destinybot.core.DestinyBot
+import net.origind.destinybot.core.features.bilibili.getLiveRoomInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.origind.destinybot.api.command.AbstractCommand

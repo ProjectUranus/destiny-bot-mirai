@@ -3,11 +3,12 @@ package net.origind.destinybot.api.command
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
+import net.mamoe.mirai.contact.isAdministrator
 import net.mamoe.mirai.message.data.Message
 
 class UserCommandExecutor(val user: User) : CommandExecutor {
-    override fun hasPermission(node: String): Boolean =
-        !node.startsWith("admin.")
+    override fun hasPermission(node: String): Boolean = if (user is Member && user.permission.isAdministrator()) true
+        else !node.startsWith("admin.")
 
     override fun sendMessage(text: String) {
         user.launch {

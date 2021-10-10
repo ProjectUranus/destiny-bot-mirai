@@ -1,11 +1,31 @@
 package net.origind.destinybot.api.command
 
-object BooleanArgument: ArgumentType<Boolean>(Boolean::class.java, {toBooleanStrictOrNull()})
+object BooleanArgument: ArgumentType<Boolean> {
+    override val clazz: Class<Boolean> = Boolean::class.java
 
-object StringArgument: ArgumentType<String>(String::class.java, {this})
+    override fun parse(literal: String): Boolean = literal.toBooleanStrictOrNull() ?: throw ArgumentParseException("Must be true or false")
+}
 
-object IntArgument: ArgumentType<Int>(Int::class.java, {toIntOrNull()})
+object StringArgument: ArgumentType<String> {
+    override val clazz: Class<String> = String::class.java
 
-object LongArgument: ArgumentType<Long>(Long::class.java, {toLongOrNull()})
+    override fun parse(literal: String): String = literal
+}
 
-object DoubleArgument: ArgumentType<Double>(Double::class.java, {toDoubleOrNull()})
+object IntArgument: ArgumentType<Int> {
+    override val clazz: Class<Int> = Int::class.java
+
+    override fun parse(literal: String): Int = literal.toIntOrNull() ?: throw ArgumentParseException("Not a valid int")
+}
+
+object LongArgument: ArgumentType<Long> {
+    override val clazz: Class<Long> = Long::class.java
+
+    override fun parse(literal: String): Long = literal.toLongOrNull() ?: throw ArgumentParseException("Not a valid long")
+}
+
+object DoubleArgument: ArgumentType<Double> {
+    override val clazz: Class<Double> = Double::class.java
+
+    override fun parse(literal: String): Double = literal.toDoubleOrNull() ?: throw ArgumentParseException("Not a valid double")
+}

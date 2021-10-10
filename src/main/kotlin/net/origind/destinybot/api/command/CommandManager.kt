@@ -14,12 +14,23 @@ fun checkCommand(command: Command) {
 
 object CommandManager: CoroutineScope {
     val commands = mutableListOf<Command>()
+    var helpText = ""
 
     private val commandMap = mutableMapOf<String, Command>()
     private val customCommands = mutableListOf<CustomCommand>()
     private var commandNameCache: Map<String, Command> = emptyMap()
     private var commandIndexCache: Int2ObjectMap<Command> = Int2ObjectMaps.EMPTY_MAP as Int2ObjectMap<Command>
     private var searchTree: GeneralizedSuffixTree = GeneralizedSuffixTree()
+
+    fun init() =
+        launch {
+            for (command in commands) {
+                command.init()
+            }
+            for (customCommand in customCommands) {
+                customCommand.init()
+            }
+        }
 
     fun buildCache() {
         searchTree = GeneralizedSuffixTree()
@@ -36,6 +47,7 @@ object CommandManager: CoroutineScope {
                 searchTree.put(it, index)
             }
             commandNameCache = commandNameCache + command.aliases.associateWith { command }
+            helpText = commands.joinToString("\n\n") { it.getHelp() }
         }
     }
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'cn.ac.origind.destinybot'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 repositories {
     mavenCentral()
@@ -13,7 +13,7 @@ repositories {
 }
 
 application {
-    mainClass = 'cn.ac.origind.destinybot.DestinyBot'
+    mainClass = 'net.origind.destinybot.core.BotMainKt'
 }
 
 sourceCompatibility = targetCompatibility = "16"

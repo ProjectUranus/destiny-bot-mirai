@@ -1,6 +1,6 @@
 package net.origind.destinybot.features.apex
 
-import cn.ac.origind.destinybot.toLocalizedString
+import net.origind.destinybot.core.toLocalizedString
 import net.origind.destinybot.api.command.AbstractCommand
 import net.origind.destinybot.api.command.ArgumentContainer
 import net.origind.destinybot.api.command.CommandContext

@@ -32,9 +32,9 @@ class CommandSpec: Command {
         subcommandMap[command.name] = command
     }
 
-    fun subcommand(init: CommandSpec.() -> Unit): CommandSpec {
+    fun subcommand(init1: CommandSpec.() -> Unit): CommandSpec {
         val spec = CommandSpec()
-        spec.init()
+        spec.init1()
         registerSubcommand(spec)
         return spec
     }
@@ -44,9 +44,9 @@ class CommandSpec: Command {
     }
 }
 
-fun command(init: CommandSpec.() -> Unit): CommandSpec {
+fun command(init1: CommandSpec.() -> Unit): CommandSpec {
     val spec = CommandSpec()
-    spec.init()
+    spec.init1()
 
     CommandManager.register(spec)
     return spec

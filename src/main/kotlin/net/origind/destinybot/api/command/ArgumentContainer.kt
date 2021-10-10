@@ -1,11 +1,13 @@
 package net.origind.destinybot.api.command
 
-class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
+class ArgumentContainer(val arguments: List<ArgumentContext<*>>) {
     val argumentContextMap: Map<String, ArgumentContext<*>>
     val requiredArgumentsToParse: Int
     private val argumentMap = mutableMapOf<String, Any>()
 
-    val deque: ArrayDeque<ArgumentContext<*>>
+    var deque: ArrayDeque<ArgumentContext<*>>
+
+    val helpText: String
 
     init {
         if (!arguments.toSet().containsAll(arguments))
@@ -14,9 +16,20 @@ class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
         argumentContextMap = arguments.associateBy { it.name }
         deque = ArrayDeque(arguments)
         requiredArgumentsToParse = arguments.count { !it.optional }
+
+        helpText = buildString {
+            appendLine(arguments.joinToString(" ") {
+                if (it.optional) "[${it.name}]" else "(${it.name})"
+            })
+            arguments.filter { it.description != null }.forEach {
+                appendLine("${it.name}: ${it.description}")
+            }
+        }.trim()
     }
 
     fun parse(parser: CommandParser) {
+        argumentMap.clear()
+        deque = ArrayDeque(arguments)
         var parsedRequiredArguments = 0
         var internal: String? = null
         while (deque.isNotEmpty() && (parser.hasMore() || internal != null)) {
@@ -57,4 +70,6 @@ class ArgumentContainer(arguments: List<ArgumentContext<*>>) {
 
     @Suppress("UNCHECKED_CAST")
     fun <T> getArgument(name: String): T = argumentMap[name] as T
+
+    fun hasArgument(name: String) = argumentMap.containsKey(name)
 }

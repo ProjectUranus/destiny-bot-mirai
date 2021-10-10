@@ -17,6 +17,12 @@ interface Command {
      */
     val description: String?
 
+    /**
+     * 启用默认帮助（/xxx help)
+     */
+    val helpEnabled: Boolean
+        get() = true
+
     val arguments: List<ArgumentContext<*>>
 
     val argumentContainer: ArgumentContainer
@@ -31,6 +37,11 @@ interface Command {
      * 用例
      */
     val examples: List<String> get() = emptyList()
+
+    /**
+     * 用来代替 Lazy
+     */
+    suspend fun init() {}
 
     /**
      * 获取一个子命令
@@ -50,18 +61,30 @@ interface Command {
      * 解析命令并执行
      */
     suspend fun parse(parser: CommandParser, executor: CommandExecutor, context: CommandContext) {
-        if (parser.hasMore()) {
-            val sub = parser.take(false)
-            if (hasSubcommand(sub)) {
-                parser.take()
-                getSubcommand(sub)?.parse(parser, executor, context)
+        try {
+            if (parser.hasMore()) {
+                val sub = parser.take(false)
+                if ((sub == "help" || sub == "?") && helpEnabled) {
+                    executor.sendMessage(getHelp())
+                } else if (hasSubcommand(sub)) {
+                    parser.take()
+                    getSubcommand(sub)?.parse(parser, executor, context)
+                } else {
+                    argumentContainer.parse(parser)
+                    if (executor.hasPermission(permission))
+                        execute(argumentContainer, executor, context)
+                    else
+                        executor.sendMessage("你无权执行该命令")
+                }
             } else {
                 argumentContainer.parse(parser)
-                execute(argumentContainer, executor, context)
+                if (executor.hasPermission(permission))
+                    execute(argumentContainer, executor, context)
+                else
+                    executor.sendMessage("你无权执行该命令")
             }
-        } else {
-            argumentContainer.parse(parser)
-            execute(argumentContainer, executor, context)
+        } catch (e: ArgumentParseException) {
+            executor.sendMessage("命令参数解析错误: ${e.localizedMessage}")
         }
     }
 
@@ -88,13 +111,11 @@ interface Command {
         }
 
         if (arguments.isNotEmpty()) {
-            appendLine("参数: $name " + arguments.joinToString(" ") {
-                if (it.optional) "[${it.name}]" else "(${it.name})"
-            })
+            appendLine("参数: $name " + argumentContainer.helpText)
         } else {
-            appendLine("该命令没有任何参数")
+            appendLine("该命令没有任何参数。")
         }
 
         examples.forEach(this::appendLine)
-    }
+    }.trim()
 }

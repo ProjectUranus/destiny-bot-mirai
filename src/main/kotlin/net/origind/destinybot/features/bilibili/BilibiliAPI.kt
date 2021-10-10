@@ -1,10 +1,10 @@
-package cn.ac.origind.destinybot.features.bilibili
+package net.origind.destinybot.core.features.bilibili
 
-import cn.ac.origind.destinybot.getBody
-import cn.ac.origind.destinybot.getJson
-import cn.ac.origind.destinybot.response.bilibili.Articles
-import cn.ac.origind.destinybot.response.bilibili.LiveResponse
-import cn.ac.origind.destinybot.response.bilibili.LiveRoomInfo
+import net.origind.destinybot.core.getBody
+import net.origind.destinybot.core.getJson
+import net.origind.destinybot.features.bilibili.Articles
+import net.origind.destinybot.features.bilibili.LiveResponse
+import net.origind.destinybot.features.bilibili.LiveRoomInfo
 
 suspend fun getArticleListIDs(): List<Int> {
     val articles = getJson<Articles>("https://api.bilibili.com/x/article/list/articles?id=175327&jsonp=jsonp", false).data.articles
