@@ -1,8 +1,8 @@
 package net.origind.destinybot.features.minecraft
 
-import net.origind.destinybot.core.DestinyBot
 import net.origind.destinybot.api.command.ArgumentParseException
 import net.origind.destinybot.api.command.ArgumentType
+import net.origind.destinybot.core.DestinyBot
 import java.net.InetSocketAddress
 
 object MinecraftServerAddressArgument : ArgumentType<InetSocketAddress> {

@@ -3,8 +3,8 @@ package net.origind.destinybot.core
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.message.data.Image
@@ -26,20 +26,14 @@ val DEBUG : Boolean get() = config[AppSpec.debug]
 
 val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
-private val loggingFriend get() = DestinyBot.bot.getFriend(1276571946)
-
-suspend fun RenderedImage.upload(contact: Contact): Image {
-    val temp = File.createTempFile("img", ".png", null)
-    ImageIO.write(this, "png", temp)
-    return contact.uploadImage(temp.toExternalResource("png"))
-}
-
-fun groupLog(message: String) {
-    if (DEBUG)
-        loggingFriend?.launch {
-            loggingFriend?.sendMessage(message)
+suspend fun RenderedImage.upload(contact: Contact): Image =
+    coroutineScope {
+        async(Dispatchers.IO) {
+            val temp = File.createTempFile("img", ".png", null)
+            ImageIO.write(this@upload, "png", temp)
+            contact.uploadImage(temp.toExternalResource("png"))
         }
-}
+    }.await()
 
 /**
  * @throws RuntimeException
@@ -53,37 +47,28 @@ inline fun <reified T> T?.orLogThrow(msg: String, e: Throwable? = null) : T {
     }
 }
 
-suspend inline fun getBody(url: String, proxy: Boolean = true, crossinline init: Request.Builder.() -> Unit = {}) = withContext(Dispatchers.IO) {
+suspend inline fun getBodyAsync(url: String, crossinline init: Request.Builder.() -> Unit = {}) = coroutineScope {
     val request = Request.Builder().apply {
         url(url)
         init()
     }.build()
     val call = client.newCall(request)
-    val response = call.execute()
-    groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
-    response.body?.string() ?: ""
+    val response = async(Dispatchers.IO) { call.execute().body?.string() ?: "" }
+    response
 }
 
-suspend inline fun <reified T> getJson(url: String, proxy: Boolean = true, crossinline init: Request.Builder.() -> Unit = {}): T = withContext(Dispatchers.IO) {
-    val request = Request.Builder().apply {
-        url(url)
-        init()
-    }.build()
-    val call = client.newCall(request)
-    val response = call.execute()
-    groupLog("请求 $url (proxy = $proxy) 耗时：" + (response.receivedResponseAtMillis - response.sentRequestAtMillis) + "ms")
-    val json = response.body?.string()!!
-    moshi.adapter(T::class.java).fromJson(json)!!
-}
+suspend inline fun <reified T> getJson(url: String, crossinline init: Request.Builder.() -> Unit = {}): T =
+    moshi.adapter(T::class.java).fromJson(getBodyAsync(url, init).await())!!
+
 
 suspend fun MessageEvent.reply(message: String) = subject.sendMessage(message)
 suspend fun MessageEvent.reply(message: Message) = subject.sendMessage(message)
 
-suspend fun Throwable.joinToString(): String = withContext(Dispatchers.IO) {
+fun Throwable.joinToString(): String {
     val writer = StringWriter()
-    this@joinToString.printStackTrace(PrintWriter(writer))
+    printStackTrace(PrintWriter(writer))
     writer.close()
-    writer.toString()
+    return writer.toString()
 }
 
 fun Duration.toLocalizedString() = buildString {

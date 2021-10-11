@@ -59,7 +59,7 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
                 executor.sendMessage(builder.toString())
             }
             "/latest" -> {
-                val builder = StringBuilder("最新版本")
+                val builder = StringBuilder("最新版本 ")
                 buildMinecraftVersionMessage(
                     versionManifest.latest?.release!!,
                     builder

@@ -1,8 +1,8 @@
 package net.origind.destinybot.features.destiny
 
-import net.origind.destinybot.core.getJson
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
+import net.origind.destinybot.core.getJson
 import net.origind.destinybot.features.destiny.response.*
 
 const val endpoint = "https://www.bungie.net/Platform"
@@ -20,7 +20,7 @@ suspend fun searchUsers(criteria: String): Set<DestinyMembershipQuery> {
         withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
     val profiles =
         withContext(Dispatchers.Default) { searchProfiles(criteria) }
-    if (result.isNullOrEmpty() && profiles.isNullOrEmpty()) {
+    if (result.isEmpty() && profiles.isEmpty()) {
         throw PlayerNotFoundException("没有搜索到玩家，请检查你的搜索内容")
     }
 

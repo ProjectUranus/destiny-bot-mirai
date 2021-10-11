@@ -1,7 +1,6 @@
 package net.origind.destinybot.features.bilibili
 
 import net.origind.destinybot.core.DestinyBot
-import net.origind.destinybot.core.features.bilibili.getLiveRoomInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.origind.destinybot.api.command.AbstractCommand

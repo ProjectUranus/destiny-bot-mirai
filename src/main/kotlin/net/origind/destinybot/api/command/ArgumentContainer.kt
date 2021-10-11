@@ -64,7 +64,21 @@ class ArgumentContainer(val arguments: List<ArgumentContext<*>>) {
             deque.removeFirst()
         }
         if (parsedRequiredArguments != requiredArgumentsToParse) {
-            throw ArgumentParseException("命令参数不足，需要: $requiredArgumentsToParse, 实际: $parsedRequiredArguments")
+            validate()
+        }
+    }
+
+    fun validate() {
+        val invalidArguments = mutableListOf<ArgumentContext<*>>()
+
+        for (argument in arguments) {
+            if (!(argumentMap.containsKey(argument.name) || argument.optional)) {
+                invalidArguments += argument
+            }
+        }
+
+        if (invalidArguments.isNotEmpty()) {
+            throw ArgumentParseException("缺失必填参数 " + invalidArguments.joinToString { it.name })
         }
     }
 

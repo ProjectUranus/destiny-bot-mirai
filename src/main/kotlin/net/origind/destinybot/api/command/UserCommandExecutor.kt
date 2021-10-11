@@ -11,11 +11,12 @@ class UserCommandExecutor(val user: User) : CommandExecutor {
         else !node.startsWith("admin.")
 
     override fun sendMessage(text: String) {
+        if (text.isBlank()) return
         user.launch {
             if (user is Member) {
-                user.group.sendMessage(text)
+                user.group.sendMessage(text.trim())
             } else {
-                user.sendMessage(text)
+                user.sendMessage(text.trim())
             }
         }
     }

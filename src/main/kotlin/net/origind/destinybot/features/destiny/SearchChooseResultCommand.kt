@@ -1,7 +1,10 @@
 package net.origind.destinybot.features.destiny
 
 import io.ktor.client.features.*
-import net.origind.destinybot.api.command.*
+import net.origind.destinybot.api.command.AbstractCustomCommand
+import net.origind.destinybot.api.command.ArgumentContainer
+import net.origind.destinybot.api.command.CommandContext
+import net.origind.destinybot.api.command.CommandExecutor
 
 object SearchChooseResultCommand : AbstractCustomCommand("选择查询结果") {
     override suspend fun execute(
@@ -10,10 +13,10 @@ object SearchChooseResultCommand : AbstractCustomCommand("选择查询结果") {
         executor: CommandExecutor,
         context: CommandContext
     ) {
-        val choice = main.toIntOrNull() ?: throw ArgumentParseException("")
-
         if (profileQuerys[context.senderId].isNullOrEmpty())
             return
+
+        val choice = main.toIntOrNull() ?: return
 
         val result = profileQuerys[context.senderId]!!
         val index = choice - 1

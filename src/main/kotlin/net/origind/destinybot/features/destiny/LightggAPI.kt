@@ -1,7 +1,6 @@
 package net.origind.destinybot.features.destiny
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.origind.destinybot.core.DestinyBot.logger
 import net.origind.destinybot.core.data.Database
 import net.origind.destinybot.core.getJson
@@ -16,17 +15,23 @@ val wishlist: Wishlist = Wishlist()
 
 class ItemNotFoundException(itemId: String, displayName: String? = null) : Exception("未找到物品 $itemId")
 
-suspend fun fetchWishlist() = withContext(Dispatchers.IO) {
-    val wishlistData = getJson<WishlistData>(WISHLIST_URL, false)
-    for (wishItemData in wishlistData.data) {
-        val recommendation = wishItemData.tags.firstOrNull() ?: ""
-        wishlist.weaponMap.getOrPut(wishItemData.hash) { Wishlist.WishlistItem() }.apply {
-            wishItemData.plugs.flatten().map { it to recommendation }.forEach {
-                put(it.first, it.second)
+suspend fun fetchWishlist() {
+    coroutineScope {
+        val jobs = mutableListOf<Job>()
+        val wishlistData = getJson<WishlistData>(WISHLIST_URL)
+        for (wishItemData in wishlistData.data) {
+            jobs += async {
+                val recommendation = wishItemData.tags.firstOrNull() ?: ""
+                wishlist.weaponMap.getOrPut(wishItemData.hash) { Wishlist.WishlistItem() }.apply {
+                    wishItemData.plugs.flatten().map { it to recommendation }.forEach {
+                        put(it.first, it.second)
+                    }
+                }
             }
         }
+        jobs.joinAll()
+        logger.info("Wishlist built")
     }
-    logger.info("Wishlist built")
 }
 
 suspend fun getItemPerks(item: ItemDefinition) = getItemPerks(item._id!!)

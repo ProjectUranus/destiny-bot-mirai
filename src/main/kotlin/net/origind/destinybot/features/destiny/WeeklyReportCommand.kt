@@ -2,7 +2,7 @@ package net.origind.destinybot.features.destiny
 
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.origind.destinybot.api.command.*
-import net.origind.destinybot.core.features.bilibili.getLatestWeeklyReportURL
+import net.origind.destinybot.features.bilibili.getLatestWeeklyReportURL
 import net.origind.destinybot.core.upload
 import net.origind.destinybot.features.destiny.image.getImage
 
@@ -14,5 +14,4 @@ object WeeklyReportCommand: AbstractCommand("周报") {
             })
         }
     }
-
 }

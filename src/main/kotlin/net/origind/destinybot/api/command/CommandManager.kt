@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import kotlinx.coroutines.*
+import net.origind.destinybot.core.joinToString
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -31,6 +32,8 @@ object CommandManager: CoroutineScope {
                 customCommand.init()
             }
         }
+
+
 
     fun buildCache() {
         searchTree = GeneralizedSuffixTree()
@@ -65,13 +68,13 @@ object CommandManager: CoroutineScope {
         val parser = CommandParser(command)
         val main = parser.take()
         val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            executor.sendMessage("执行出现错误: " + throwable.message.toString())
+            executor.sendMessage("执行出现错误: " + throwable.joinToString())
         }
         customCommands.forEach {
             launch(handler) { withTimeout(10_000) { it.parse(main, parser, executor, context) } }
         }
-        if (commandMap.containsKey(main)) {
-            launch(handler) { withTimeout(10_000) { commandMap[main]?.parse(parser, executor, context) } }
+        if (commandNameCache.containsKey(main)) {
+            launch(handler) { withTimeout(10_000) { commandNameCache[main]?.parse(parser, executor, context) } }
         } else {
 //            val top = FuzzySearch.extractTop(main, commandNameCache.keys, 1, 90)
 //            if (top.isNotEmpty()) {

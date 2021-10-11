@@ -5,7 +5,6 @@ class CommandParser(val command: String) {
 
     init {
         trim() // TODO Config section
-        
     }
 
     fun trim() {

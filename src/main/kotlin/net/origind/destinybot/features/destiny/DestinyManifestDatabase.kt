@@ -1,5 +1,7 @@
 package net.origind.destinybot.features.destiny
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.origind.destinybot.core.DestinyBot
 import net.origind.destinybot.core.config.DictSpec
 import net.origind.destinybot.core.data.Database
@@ -33,12 +35,10 @@ suspend fun searchItemDefinitions(displayName: String): List<ItemDefinition> {
     else return documents
 }
 
-suspend fun getRandomLore() : Lore {
+suspend fun getRandomLore() : Lore = withContext(Dispatchers.IO) {
     val collection = Database.db.getCollection("DestinyLoreDefinition_chs")
     val doc = collection.aggregate<Document>("""{${'$'}sample: { size: 1 }}""").firstOrNull()
     val displayProperties = doc?.get("displayProperties", Document::class.java)
-    if (displayProperties?.getString("name").isNullOrEmpty()) return getRandomLore()
-    return displayProperties!!.let {
-        moshi.adapter(Lore::class.java).fromJson(it.toJson())!!
-    }
+    if (displayProperties?.getString("name").isNullOrEmpty()) return@withContext getRandomLore()
+    return@withContext moshi.adapter(Lore::class.java).fromJson(displayProperties!!.toJson())!!
 }

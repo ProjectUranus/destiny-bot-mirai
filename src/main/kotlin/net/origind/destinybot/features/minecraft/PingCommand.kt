@@ -1,7 +1,5 @@
 package net.origind.destinybot.features.minecraft
 
-import net.origind.destinybot.core.DestinyBot
-import net.origind.destinybot.core.joinToString
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
 import com.github.steveice10.mc.protocol.data.SubProtocol
@@ -12,11 +10,14 @@ import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
 import com.github.steveice10.packetlib.Client
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import net.mamoe.mirai.message.data.buildMessageChain
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.origind.destinybot.api.command.*
+import net.origind.destinybot.core.DestinyBot
+import net.origind.destinybot.core.joinToString
 import java.net.InetSocketAddress
+import kotlin.coroutines.suspendCoroutine
 
 object PingCommand: AbstractCommand("/ping") {
     val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
@@ -29,75 +30,77 @@ object PingCommand: AbstractCommand("/ping") {
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
-        if (argument.hasArgument("server")) {
-            try {
-                status(executor, DestinyBot.config[MinecraftSpec.default].host!!, DestinyBot.config[MinecraftSpec.default].port)
-            } catch (e: Exception) {
-                if (e is NullPointerException) {
-                    executor.sendMessage("未设置默认服务器。")
-                    executor.sendMessage(getHelp())
-                } else {
+        try {
+            if (argument.hasArgument("server")) {
+                val server = argument.getArgument<InetSocketAddress>("server")
+                println("正在测试到服务器 $server 的延迟")
+                try {
+                    status(executor, server.hostString, server.port)
+                } catch (e: Exception) {
                     executor.sendMessage("连接失败: " + e.joinToString())
                 }
+            } else {
+                try {
+                    status(executor, DestinyBot.config[MinecraftSpec.default].host!!, DestinyBot.config[MinecraftSpec.default].port)
+                } catch (e: Exception) {
+                    if (e is NullPointerException) {
+                        executor.sendMessage("未设置默认服务器。")
+                        executor.sendMessage(getHelp())
+                    } else {
+                        executor.sendMessage("连接失败: " + e.joinToString())
+                    }
+                }
             }
-        } else {
-            val server = argument.getArgument<InetSocketAddress>("server")
-            try {
-                status(executor, server.hostString, server.port)
-            } catch (e: Exception) {
-                executor.sendMessage("连接失败: " + e.joinToString())
-            }
+        } catch (e: TimeoutCancellationException) {
+            executor.sendMessage("请求超时，请重试。")
         }
     }
 
-    fun mapMessageToRaw(message: Message): String {
+    private fun mapMessageToRaw(message: Message): String {
         return if (message is TextMessage) message.text
         else {
             buildString { message.extra.map(::mapMessageToRaw).forEach(::append) }
         }
     }
 
-    suspend fun status(executor: CommandExecutor, host: String, port: Int) {
+    suspend fun status(executor: CommandExecutor, host: String, port: Int) = coroutineScope {
         val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
 
-        var infoVar: ServerStatusInfo? = null
-        var pingTimeVar: Long? = null
+        val infoAsync = async(Dispatchers.IO) {
+            suspendCoroutine<ServerStatusInfo> {
+                client.session.setFlag(
+                    MinecraftConstants.SERVER_INFO_HANDLER_KEY,
+                    ServerInfoHandler { _, i ->
+                        it.resumeWith(Result.success(i))
+                    })
+            }
+        }
 
-        client.session.setFlag(
-            MinecraftConstants.SERVER_INFO_HANDLER_KEY,
-            ServerInfoHandler { _, i ->
-                infoVar = i
-            })
-
-        client.session.setFlag(
-            MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
-            ServerPingTimeHandler { _, p ->
-                pingTimeVar = p
-            })
+        val pingTimeAsync = async(Dispatchers.IO) {
+            suspendCoroutine<Long> {
+                client.session.setFlag(
+                    MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
+                    ServerPingTimeHandler { _, p ->
+                        it.resumeWith(Result.success(p))
+                    })
+            }
+        }
 
         client.session.connect(true)
 
-        delay(1000)
-
-        if (infoVar == null || pingTimeVar == null) {
-            executor.sendMessage("请求超时，请重试。")
-            return
-        }
-
-        val info = infoVar!!
-        val pingTime = pingTimeVar!!
+        val (info, pingTime) = withTimeout(1000) { infoAsync.await() to pingTimeAsync.await() }
 
         val msg = buildString {
-            appendLine(mapMessageToRaw(info.description).replace(Regex("§[\\w\\d]"), ""))
+            append(mapMessageToRaw(info.description).replace(Regex("§[\\w\\d]"), ""))
             appendLine(
                 ", ${
                     info.versionInfo.versionName.replace(
                         Regex("((thermos|cauldron|craftbukkit|mcpc|kcauldron|fml),?)+"),
                         ""
                     )
-                }\n"
+                }"
             )
-            appendLine("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}\n")
+            appendLine("玩家: ${info.playerInfo.onlinePlayers} / ${info.playerInfo.maxPlayers}")
             if (info.playerInfo.onlinePlayers > 0) {
                 appendLine(info.playerInfo.players.joinToString(", ") { it.name })
             }

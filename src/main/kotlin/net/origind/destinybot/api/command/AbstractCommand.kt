@@ -1,6 +1,6 @@
 package net.origind.destinybot.api.command
 
-abstract class AbstractCommand(override val name: String): Command {
+abstract class AbstractCommand(final override val name: String): Command {
     val subcommandMap = mutableMapOf<String, Command>()
 
     override var permission: String = "destinybot.$name"

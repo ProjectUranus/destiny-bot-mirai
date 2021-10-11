@@ -15,7 +15,7 @@ import javax.imageio.ImageIO
 
 /**
  * @param icon icon path in displayProperties
- * @see net.origind.destinybot.core.response.lightgg.DisplayProperties.icon
+ * @see net.origind.destinybot.features.destiny.response.lightgg.DisplayProperties.icon
  */
 suspend fun getImage(icon: String): BufferedImage {
     try {
