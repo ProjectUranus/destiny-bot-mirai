@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group 'net.origind.destinybot'
+version '1.0'
+
+sourceCompatibility = targetCompatibility = "16"
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation project(":destinybot-api")
+    implementation project(":destinybot-features")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.0'
+    implementation 'com.electronwill.night-config:toml:3.6.4'
+
+    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.9.2'
+    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: '1.9.2'
+
+    runtimeOnly "net.mamoe:mirai-core:$miraiVersion"
+    api "net.mamoe:mirai-core-api:$miraiVersion"
+
+    implementation 'ch.qos.logback:logback-classic:1.3.0-alpha5'
+
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
+    implementation 'com.projecturanus:suffixtree:1.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "16"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "16"
+}

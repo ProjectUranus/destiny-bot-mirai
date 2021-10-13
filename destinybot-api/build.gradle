@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group 'net.origind.destinybot.api'
+version '1.0'
+
+sourceCompatibility = targetCompatibility = "16"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.0'
+
+    implementation 'org.slf4j:slf4j-api:2.0.0-alpha1'
+    implementation 'com.electronwill.night-config:core:3.6.4'
+}
+
+test {
+    useJUnitPlatform()
+}
+

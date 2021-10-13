@@ -1,0 +1,13 @@
+[account]
+qq = 100000
+password = ""
+
+[minecraft]
+default = "mc.hypixel.net"
+
+[minecraft.servers]
+hypixel = "mc.hypixel.net"
+
+[bilibili]
+lives = [123]
+

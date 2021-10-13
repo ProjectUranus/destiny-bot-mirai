@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group 'net.origind.destinybot.features'
+version '1.0'
+
+sourceCompatibility = targetCompatibility = "16"
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation project(":destinybot-api")
+
+    implementation 'com.electronwill.night-config:core:3.6.4'
+
+    implementation 'io.ktor:ktor-client-core-jvm:1.5.4'
+    implementation 'io.ktor:ktor-client-okhttp:1.5.4'
+    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.9.2'
+    implementation group: 'com.squareup.moshi', name: 'moshi-kotlin', version: '1.9.2'
+    implementation 'org.litote.kmongo:kmongo:4.2.8'
+    implementation 'org.litote.kmongo:kmongo-coroutine:4.2.8'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
+    implementation 'me.xdrop:fuzzywuzzy:1.3.1'
+
+    implementation 'com.github.Steveice10:MCProtocolLib:1.16.4-1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "16"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "16"
+}
