@@ -16,6 +16,8 @@ abstract class AbstractCommand(final override val name: String): Command {
 
     override val argumentContainer: ArgumentContainer by lazy { ArgumentContainer(arguments) }
 
+    override fun hasSubcommand(name: String): Boolean = subcommandMap.containsKey(name)
+
     override fun getSubcommand(name: String): Command? =
         subcommandMap[name]
 
