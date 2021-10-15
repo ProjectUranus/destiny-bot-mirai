@@ -19,7 +19,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-val logger: Logger = LoggerFactory.getLogger("DestinyBotFeatures")
+val logger: Logger = LoggerFactory.getLogger("DestinyBot Features")
 
 class FeaturesPlugin : Plugin {
     override val name: String = "features"

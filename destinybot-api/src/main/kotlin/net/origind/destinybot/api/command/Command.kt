@@ -100,7 +100,11 @@ interface Command {
      * 帮助
      */
     fun getHelp(): String = buildString {
-        appendLine("命令: $name")
+        append(name)
+        if (description != null)
+            append(" - ").appendLine(description)
+        else
+            appendLine()
 
         if (aliases.isNotEmpty())
             appendLine("别名: [${aliases.joinToString()}]")

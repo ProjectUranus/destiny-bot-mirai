@@ -89,6 +89,7 @@ object PingCommand: AbstractCommand("/ping") {
         val (info, pingTime) = withTimeout(1000) { infoAsync.await() to pingTimeAsync.await() }
 
         val msg = buildString {
+            appendLine("服务器延迟为 ${pingTime}ms")
             append(mapMessageToRaw(info.description).replace(Regex("§[\\w\\d]"), ""))
             appendLine(
                 ", ${
@@ -106,9 +107,7 @@ object PingCommand: AbstractCommand("/ping") {
 
         if (executor is UserCommandExecutor) {
             info.iconPng?.let { executor.sendImage(it) }
-        } else {
-            executor.sendMessage(msg)
         }
-        executor.sendMessage("服务器延迟为 ${pingTime}ms")
+        executor.sendMessage(msg)
     }
 }
