@@ -8,10 +8,11 @@ object ConfigCommand: AbstractCommand("/config") {
         permission = "admin.config"
         registerSubcommand(GetCommand)
         registerSubcommand(SetCommand)
+        registerSubcommand(DeleteCommand)
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
-        executor.sendMessage("用法: /config get [node]\n/config set (node) (value)")
+        executor.sendMessage("用法: /config get [node]\n/config set (node) (value)\n/config delete (node)")
     }
 
     object GetCommand : AbstractCommand("get") {
@@ -54,6 +55,22 @@ object ConfigCommand: AbstractCommand("/config") {
             DestinyBot.config.save()
             DestinyBot.reloadConfig()
             executor.sendMessage("已将 $node 设置为 $value")
+        }
+    }
+
+    object DeleteCommand : AbstractCommand("delete") {
+        init {
+            permission = "admin.config.remove"
+            arguments += ArgumentContext("node", StringArgument)
+        }
+
+        override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
+            val node = argument.getArgument<String>("node")
+
+            DestinyBot.config.remove<Any?>(node)
+            DestinyBot.config.save()
+            DestinyBot.reloadConfig()
+            executor.sendMessage("已移除 $node")
         }
     }
 }
