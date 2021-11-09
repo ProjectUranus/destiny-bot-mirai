@@ -10,5 +10,7 @@ interface Plugin {
 
     fun reloadConfig(config: Config)
 
+    suspend fun reload() {}
+
     fun registerCommand(manager: CommandManager)
 }

@@ -32,6 +32,10 @@ class FeaturesPlugin : Plugin {
         minecraftConfig = MinecraftConfig(config)
     }
 
+    override suspend fun reload() {
+        MinecraftVersionCommand.reload()
+    }
+
     override fun registerCommand(manager: CommandManager) {
         // Apex Commands
         manager.register(MapRotationCommand)

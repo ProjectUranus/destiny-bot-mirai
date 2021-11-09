@@ -1,9 +1,13 @@
 package net.origind.destinybot.features.minecraft
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import net.origind.destinybot.api.command.AbstractCustomCommand
 import net.origind.destinybot.api.command.ArgumentContainer
 import net.origind.destinybot.api.command.CommandContext
 import net.origind.destinybot.api.command.CommandExecutor
+import net.origind.destinybot.features.getBodyAsync
 import net.origind.destinybot.features.moshi
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -16,6 +20,14 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
     init {
         versionManifest = moshi.adapter(MinecraftVersionManifest::class.java).fromJson(Files.readString(Paths.get("version_manifest.json")))!!
         versionMap = versionManifest.versions?.associate { "/" + it.id!!.replace(".", "") to it } ?: emptyMap()
+    }
+
+    suspend fun reload() = coroutineScope {
+        launch {
+            val str = getBodyAsync("https://launchermeta.mojang.com/mc/game/version_manifest.json").await()
+            launch(Dispatchers.IO) { versionManifest = moshi.adapter(MinecraftVersionManifest::class.java).fromJson(str)!! }
+            launch(Dispatchers.IO) { Files.writeString(Paths.get("version_manifest.json"), str)}
+        }.join()
     }
 
     private fun buildMinecraftVersionMessage(version: String, builder: StringBuilder) {

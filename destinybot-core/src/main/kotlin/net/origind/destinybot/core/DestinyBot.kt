@@ -81,6 +81,7 @@ object DestinyBot : Closeable {
         CommandManager.register(HelpCommand)
         CommandManager.register(ConfigCommand)
         CommandManager.register(RankingCommand)
+        CommandManager.register(ReloadCommand)
     }
 
     private fun Bot.subscribeMessages() {
