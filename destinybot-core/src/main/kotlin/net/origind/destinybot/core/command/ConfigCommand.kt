@@ -44,6 +44,7 @@ object ConfigCommand: AbstractCommand("/config") {
 
             if (DestinyBot.config.contains(node)) {
                 val current = DestinyBot.config.get<Any?>(node)
+
                 if (current.javaClass != String::class.java) {
                     executor.sendMessage("暂不支持设定 ${current.javaClass.name} 类型的节点")
                     return

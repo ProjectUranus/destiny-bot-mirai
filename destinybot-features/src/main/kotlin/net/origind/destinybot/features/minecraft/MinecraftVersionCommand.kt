@@ -25,13 +25,16 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
     suspend fun reload() = coroutineScope {
         launch {
             val str = getBodyAsync("https://launchermeta.mojang.com/mc/game/version_manifest.json").await()
-            launch(Dispatchers.IO) { versionManifest = moshi.adapter(MinecraftVersionManifest::class.java).fromJson(str)!! }
+            launch(Dispatchers.IO) {
+                versionManifest = moshi.adapter(MinecraftVersionManifest::class.java).fromJson(str)!!
+                versionMap = versionManifest.versions?.associate { "/" + it.id!!.replace(".", "") to it } ?: emptyMap()
+            }
             launch(Dispatchers.IO) { Files.writeString(Paths.get("version_manifest.json"), str)}
         }.join()
     }
 
     private fun buildMinecraftVersionMessage(version: String, builder: StringBuilder) {
-        val version = versionMap["/" + version.replace(".", "").replace("/", "")]
+        val version = if (version in versionMap) versionMap[version] else versionMap["/" + version.replace(".", "").replace("/", "")]
         val now = LocalDateTime.now()
         val duration = Duration.between(Instant.parse(version?.releaseTime), Instant.now())
         val period = Period.between(ZonedDateTime.parse(version?.releaseTime).toLocalDate(), now.toLocalDate())
@@ -65,7 +68,7 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
                     StringBuilder("最新预览版 ")
                 }
                 buildMinecraftVersionMessage(
-                    versionManifest.latest?.snapshot!!,
+                    versionManifest.latest?.release!!,
                     builder
                 )
                 executor.sendMessage(builder.toString())
@@ -73,7 +76,7 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
             "/latest" -> {
                 val builder = StringBuilder("最新版本 ")
                 buildMinecraftVersionMessage(
-                    versionManifest.latest?.release!!,
+                    versionManifest.latest?.snapshot!!,
                     builder
                 )
                 executor.sendMessage(builder.toString())
