@@ -29,4 +29,6 @@ mirai/
 run/
 data/
 
+..bfg-report/
+config.toml
 config.json
