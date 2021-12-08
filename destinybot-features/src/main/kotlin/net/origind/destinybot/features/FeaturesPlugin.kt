@@ -11,6 +11,7 @@ import net.origind.destinybot.features.bilibili.BilibiliConfig
 import net.origind.destinybot.features.bilibili.StreamerCommand
 import net.origind.destinybot.features.bilibili.bilibiliConfig
 import net.origind.destinybot.features.destiny.*
+import net.origind.destinybot.features.github.GitHubCommand
 import net.origind.destinybot.features.minecraft.MinecraftConfig
 import net.origind.destinybot.features.minecraft.MinecraftVersionCommand
 import net.origind.destinybot.features.minecraft.PingCommand
@@ -23,6 +24,7 @@ val logger: Logger = LoggerFactory.getLogger("DestinyBot Features")
 
 class FeaturesPlugin : Plugin {
     override val name: String = "features"
+    override val version: String = "1.0.0"
 
     override fun init() {
     }
@@ -57,6 +59,9 @@ class FeaturesPlugin : Plugin {
         manager.register(SearchCommand)
         manager.register(TrackerCommand)
         manager.register(WeeklyReportCommand)
+
+        // GitHub Commands
+        manager.register(GitHubCommand)
 
         // Minecraft Commands
         manager.register(PingCommand)

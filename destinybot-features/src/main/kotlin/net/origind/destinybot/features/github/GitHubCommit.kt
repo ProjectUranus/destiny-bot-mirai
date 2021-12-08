@@ -1,8 +1,9 @@
 package net.origind.destinybot.features.github
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-
+@JsonClass(generateAdapter = true)
 data class CommitInfo(
     @Json(name = "sha") var sha: String,
     @Json(name = "node_id") var nodeId: String,
@@ -38,14 +39,20 @@ data class Verification(
 
 
 data class Commit(
-    @Json(name = "author") var author: Author,
-    @Json(name = "committer") var committer: Committer,
+    @Json(name = "author") var author: GitAuthor,
+    @Json(name = "committer") var committer: GitAuthor,
     @Json(name = "message") var message: String,
     @Json(name = "tree") var tree: Tree,
     @Json(name = "url") var url: String,
     @Json(name = "comment_count") var commentCount: Int,
 //    @Json(name = "verification") var verification: Verification
 
+)
+
+data class GitAuthor(
+    var name: String,
+    var email: String,
+    var date: String
 )
 
 data class Author(
