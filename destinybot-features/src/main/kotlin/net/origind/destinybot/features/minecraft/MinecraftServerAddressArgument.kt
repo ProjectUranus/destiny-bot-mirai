@@ -18,9 +18,13 @@ object MinecraftServerAddressArgument : ArgumentType<InetSocketAddress> {
         }
     }
 
+    fun isServer(address: String): Boolean {
+        return address.contains(':') || minecraftConfig.servers.containsKey(address.lowercase())
+    }
+
     override fun parse(literal: String): InetSocketAddress {
-        return if (minecraftConfig.servers.containsKey(literal)) {
-            val spec = minecraftConfig.servers[literal]
+        return if (minecraftConfig.servers.containsKey(literal.lowercase())) {
+            val spec = minecraftConfig.servers[literal.lowercase()]
             InetSocketAddress(spec!!.host, spec.port)
         } else {
             resolveInetAddress(literal)

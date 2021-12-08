@@ -1,4 +1,4 @@
 package net.origind.destinybot.features.rss
 
-class RSSFeed {
+class RSSFeed(var title: String = "Not fetched") {
 }

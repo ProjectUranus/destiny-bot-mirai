@@ -5,6 +5,7 @@ import net.origind.destinybot.api.command.CommandManager
 
 interface Plugin {
     val name: String
+    val version: String
 
     fun init()
 

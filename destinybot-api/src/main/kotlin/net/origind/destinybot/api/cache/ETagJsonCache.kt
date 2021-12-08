@@ -1,4 +1,7 @@
 package net.origind.destinybot.api.cache
 
-class ETagJsonCache {
+/**
+ * Usually used in REST api return
+ */
+open class ETagJsonCache : Cache() {
 }

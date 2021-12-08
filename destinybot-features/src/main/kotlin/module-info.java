@@ -18,8 +18,12 @@ module destinybot.features {
     requires java.desktop;
     requires org.slf4j;
     requires com.electronwill.nightconfig.core;
+    requires com.rometools.rome;
+    requires suffixtree;
+    requires it.unimi.dsi.fastutil;
 
     exports net.origind.destinybot.features;
+    exports net.origind.destinybot.features.rss;
     exports net.origind.destinybot.features.apex;
     exports net.origind.destinybot.features.bilibili;
     exports net.origind.destinybot.features.destiny;

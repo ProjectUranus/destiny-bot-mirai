@@ -7,10 +7,11 @@ class MinecraftConfig(config: Config) {
         val address = MinecraftServerAddressArgument.resolveInetAddress(it)
         MinecraftServerSpec(address.hostString, address.port)
     }
-    val servers: Map<String, MinecraftServerSpec> = config.get<Config>("minecraft.servers").valueMap().mapValues {
+    val servers: Map<String, MinecraftServerSpec> = config.get<Config>("minecraft.servers").valueMap().map {
         val address = MinecraftServerAddressArgument.resolveInetAddress(it.value.toString())
-        MinecraftServerSpec(address.hostString, address.port)
-    }
+        it.key.lowercase() to MinecraftServerSpec(address.hostString, address.port)
+    }.toMap()
+    val ignoreCase: Boolean = config.getOrElse("minecraft.ignoreCase", true)
 }
 
 data class MinecraftServerSpec(var host: String? = null, var port: Int = 25565)

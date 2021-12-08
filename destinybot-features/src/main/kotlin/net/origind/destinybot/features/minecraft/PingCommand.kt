@@ -1,5 +1,6 @@
 package net.origind.destinybot.features.minecraft
 
+import com.electronwill.nightconfig.core.Config
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
 import com.github.steveice10.mc.protocol.data.SubProtocol
@@ -10,32 +11,54 @@ import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
 import com.github.steveice10.packetlib.Client
 import com.github.steveice10.packetlib.tcp.TcpSessionFactory
+import com.projecturanus.suffixtree.GeneralizedSuffixTree
+import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap
 import kotlinx.coroutines.*
 import net.origind.destinybot.api.command.*
-import java.net.InetSocketAddress
 import kotlin.coroutines.suspendCoroutine
 
 lateinit var minecraftConfig: MinecraftConfig
 
 object PingCommand: AbstractCommand("/ping") {
+    var searchTree = GeneralizedSuffixTree()
+    val searchTreeResultMap = Int2ObjectAVLTreeMap<String>()
     val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
 
     override val aliases: List<String>
         get() = listOf("ping")
 
     init {
-        arguments += ArgumentContext("server", MinecraftServerAddressArgument, true)
+        arguments += ArgumentContext("server", StringArgument, true)
+    }
+
+    fun reloadConfig(config: Config) {
+        searchTreeResultMap.clear()
+        searchTree = GeneralizedSuffixTree()
+        minecraftConfig.servers.keys.forEachIndexed { index, s ->
+            searchTree.put(s, index)
+            searchTreeResultMap[index] = s
+        }
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
         try {
             if (argument.hasArgument("server")) {
-                val server = argument.getArgument<InetSocketAddress>("server")
-                println("正在测试到服务器 $server 的延迟")
-                try {
-                    status(executor, server.hostString, server.port)
-                } catch (e: Exception) {
-                    executor.sendMessage("连接失败: " + e.localizedMessage)
+                val server = argument.getArgument<String>("server")
+                if (MinecraftServerAddressArgument.isServer(server)) {
+                    val server = MinecraftServerAddressArgument.parse(server)
+                    println("正在测试到服务器 $server 的延迟")
+                    try {
+                        status(executor, server.hostString, server.port)
+                    } catch (e: Exception) {
+                        executor.sendMessage("连接失败: " + e.localizedMessage)
+                    }
+                } else {
+                    val results = searchTree.search(server)
+                    if (results.isEmpty()) {
+                        executor.sendMessage("未找到服务器 $server")
+                    } else {
+                        executor.sendMessage("未找到服务器 $server，类似的服务器有 ${results.joinToString { searchTreeResultMap[it] }}")
+                    }
                 }
             } else {
                 try {

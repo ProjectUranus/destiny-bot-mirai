@@ -30,6 +30,7 @@ class FeaturesPlugin : Plugin {
     override fun reloadConfig(config: Config) {
         bilibiliConfig = BilibiliConfig(config)
         minecraftConfig = MinecraftConfig(config)
+        PingCommand.reloadConfig(config)
     }
 
     override suspend fun reload() {

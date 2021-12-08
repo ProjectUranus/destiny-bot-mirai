@@ -1,4 +1,4 @@
 package net.origind.destinybot.api.cache
 
-class Cache {
+open class Cache {
 }

@@ -1,4 +1,6 @@
 package net.origind.destinybot.features.rss
 
-class RSSEntry {
+import java.util.*
+
+data class RSSEntry(val title: String, val updatedTime: Date) {
 }

@@ -1,4 +1,6 @@
 package net.origind.destinybot.features.github
 
-class GitHubCache {
+import net.origind.destinybot.api.cache.Cache
+
+class GitHubCache : Cache() {
 }

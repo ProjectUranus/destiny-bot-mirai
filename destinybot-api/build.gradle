@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'net.origind.destinybot.api'
-version '1.0'
+version project["api.version"]
 
 sourceCompatibility = targetCompatibility = "16"
 
