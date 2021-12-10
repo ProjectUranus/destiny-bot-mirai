@@ -6,7 +6,7 @@ import net.origind.destinybot.features.getBodyAsync
 import net.origind.destinybot.features.moshi
 
 object GitHubCommitCommand : AbstractCommand("commit") {
-    val regex = Regex("\\w+/\\w+")
+    val regex = Regex("[\\w\\-_]+/[\\w\\-_]+")
     val type = Types.newParameterizedType(List::class.java, CommitInfo::class.java)
 
     init {
@@ -17,7 +17,7 @@ object GitHubCommitCommand : AbstractCommand("commit") {
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
         val repo = argument.getArgument<String>("repo")
         if (!repo.matches(regex)) {
-            executor.sendMessage("Repo name invalid")
+            executor.sendMessage("仓库名非法")
             return
         }
 
