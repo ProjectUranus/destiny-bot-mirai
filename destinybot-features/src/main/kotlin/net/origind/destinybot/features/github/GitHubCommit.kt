@@ -11,7 +11,7 @@ data class CommitInfo(
     @Json(name = "url") var url: String,
     @Json(name = "html_url") var htmlUrl: String,
     @Json(name = "comments_url") var commentsUrl: String,
-    @Json(name = "author") var author: CommitAuthor,
+    @Json(name = "author") var author: Author,
     @Json(name = "committer") var committer: Committer,
     @Json(name = "parents") var parents: List<Parents> = arrayListOf()
 
