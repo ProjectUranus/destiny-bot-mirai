@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import net.origind.destinybot.api.command.*
 import net.origind.destinybot.api.command.CommandManager
 import net.origind.destinybot.api.util.joinToString
+import okhttp3.internal.toImmutableList
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 
@@ -27,10 +28,10 @@ object CommandManager: CoroutineScope, CommandManager {
 
     override fun init() =
         launch {
-            for (command in commands) {
+            for (command in commands.toImmutableList()) {
                 command.init()
             }
-            for (customCommand in customCommands) {
+            for (customCommand in customCommands.toImmutableList()) {
                 customCommand.init()
             }
         }

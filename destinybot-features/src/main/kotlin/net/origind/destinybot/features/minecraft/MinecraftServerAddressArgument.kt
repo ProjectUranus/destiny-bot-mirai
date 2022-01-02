@@ -19,7 +19,7 @@ object MinecraftServerAddressArgument : ArgumentType<InetSocketAddress> {
     }
 
     fun isServer(address: String): Boolean {
-        return address.contains(':') || minecraftConfig.servers.containsKey(address.lowercase())
+        return address.contains(':') || minecraftConfig.servers.containsKey(address.lowercase()) || !InetSocketAddress(address, 25565).isUnresolved
     }
 
     override fun parse(literal: String): InetSocketAddress {

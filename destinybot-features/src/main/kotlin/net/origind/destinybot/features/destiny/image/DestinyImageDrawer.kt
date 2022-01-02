@@ -37,7 +37,7 @@ suspend fun List<CharacterComponent>.toImage() : BufferedImage {
     for (character in this) {
         val icon = getImage(character.emblemBackgroundPath)
         with(image.createGraphics()) {
-            font = Font("Microsoft YaHei UI", Font.BOLD, 24)
+            font = Font("Noto Sans SC", Font.BOLD, 24)
             var metrics = getFontMetrics(font)
 
             drawImage(icon, 0, y, null)
@@ -46,7 +46,7 @@ suspend fun List<CharacterComponent>.toImage() : BufferedImage {
 
             color = Color.YELLOW
             drawString(character.light.toString(), 390, 14 + y + metrics.ascent)
-            font = Font("Microsoft YaHei UI", Font.BOLD, 19)
+            font = Font("Noto Sans SC", Font.BOLD, 19)
             metrics = getFontMetrics(font)
             color = Color.GRAY
             drawString("${genders[character.genderType]} ${races[character.raceType]}", 88, 54 + y + metrics.ascent)
@@ -70,7 +70,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
             RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON
         )))
 
-        font = Font("Microsoft YaHei UI", Font.BOLD, 66)
+        font = Font("Noto Sans SC", Font.BOLD, 66)
         var metrics = getFontMetrics(font)
 
         // Icon
@@ -81,7 +81,7 @@ suspend fun ItemDefinition.toImage(perks: ItemPerks) : BufferedImage {
 
         drawString(displayProperties?.name!!, 260, 90 + metrics.ascent)
 
-        font = Font("Microsoft YaHei UI", Font.PLAIN, 30)
+        font = Font("Noto Sans SC", Font.PLAIN, 30)
         metrics = getFontMetrics(font)
         if (itemTypeAndTierDisplayName?.contains("传说") == true) {
             color = legendaryColor

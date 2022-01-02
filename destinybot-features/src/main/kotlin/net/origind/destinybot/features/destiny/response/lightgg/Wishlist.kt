@@ -1,6 +1,7 @@
 package net.origind.destinybot.features.destiny.response.lightgg
 
 import com.squareup.moshi.JsonClass
+import java.util.concurrent.ConcurrentHashMap
 
 @JsonClass(generateAdapter = true)
 data class WishlistData(val data: List<WishlistItemData>)
@@ -8,7 +9,7 @@ data class WishlistData(val data: List<WishlistItemData>)
 @JsonClass(generateAdapter = true)
 data class WishlistItemData(val description: String = "", val plugs: List<List<Long>>, val hash: Long, val tags: List<String>, val originalWishList: String = "")
 
-data class Wishlist(val weaponMap: MutableMap<Long, WishlistItem> = mutableMapOf()) {
+data class Wishlist(val weaponMap: MutableMap<Long, WishlistItem> = ConcurrentHashMap()) {
     data class WishlistItem(
         // Key: Plug Hash  Value: Recommendation
         val recommendationMap: MutableMap<Long, String> = mutableMapOf()

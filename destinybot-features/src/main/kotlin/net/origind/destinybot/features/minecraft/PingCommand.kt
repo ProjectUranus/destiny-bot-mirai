@@ -3,17 +3,15 @@ package net.origind.destinybot.features.minecraft
 import com.electronwill.nightconfig.core.Config
 import com.github.steveice10.mc.protocol.MinecraftConstants
 import com.github.steveice10.mc.protocol.MinecraftProtocol
-import com.github.steveice10.mc.protocol.data.SubProtocol
-import com.github.steveice10.mc.protocol.data.message.Message
-import com.github.steveice10.mc.protocol.data.message.TextMessage
 import com.github.steveice10.mc.protocol.data.status.ServerStatusInfo
 import com.github.steveice10.mc.protocol.data.status.handler.ServerInfoHandler
 import com.github.steveice10.mc.protocol.data.status.handler.ServerPingTimeHandler
-import com.github.steveice10.packetlib.Client
-import com.github.steveice10.packetlib.tcp.TcpSessionFactory
+import com.github.steveice10.packetlib.tcp.TcpClientSession
 import com.projecturanus.suffixtree.GeneralizedSuffixTree
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap
 import kotlinx.coroutines.*
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.origind.destinybot.api.command.*
 import kotlin.coroutines.suspendCoroutine
 
@@ -22,7 +20,7 @@ lateinit var minecraftConfig: MinecraftConfig
 object PingCommand: AbstractCommand("/ping") {
     var searchTree = GeneralizedSuffixTree()
     val searchTreeResultMap = Int2ObjectAVLTreeMap<String>()
-    val statusProtocol = MinecraftProtocol(SubProtocol.STATUS)
+    val statusProtocol = MinecraftProtocol()
 
     override val aliases: List<String>
         get() = listOf("ping")
@@ -77,19 +75,19 @@ object PingCommand: AbstractCommand("/ping") {
         }
     }
 
-    private fun mapMessageToRaw(message: Message): String {
-        return if (message is TextMessage) message.text
+    private fun mapMessageToRaw(message: Component): String {
+        return if (message is TextComponent) message.content()
         else {
-            buildString { message.extra.map(::mapMessageToRaw).forEach(::append) }
+            buildString { message.children().map(::mapMessageToRaw).forEach(::append) }
         }
     }
 
     suspend fun status(executor: CommandExecutor, host: String, port: Int) = coroutineScope {
-        val client = Client(host, port, statusProtocol, TcpSessionFactory(null))
+        val client = TcpClientSession(host, port, statusProtocol)
 
         val infoAsync = async(Dispatchers.IO) {
             suspendCoroutine<ServerStatusInfo> {
-                client.session.setFlag(
+                client.setFlag(
                     MinecraftConstants.SERVER_INFO_HANDLER_KEY,
                     ServerInfoHandler { _, i ->
                         it.resumeWith(Result.success(i))
@@ -99,7 +97,7 @@ object PingCommand: AbstractCommand("/ping") {
 
         val pingTimeAsync = async(Dispatchers.IO) {
             suspendCoroutine<Long> {
-                client.session.setFlag(
+                client.setFlag(
                     MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
                     ServerPingTimeHandler { _, p ->
                         it.resumeWith(Result.success(p))
@@ -107,7 +105,7 @@ object PingCommand: AbstractCommand("/ping") {
             }
         }
 
-        client.session.connect(true)
+        client.connect(true)
 
         val (info, pingTime) = withTimeout(1000) { infoAsync.await() to pingTimeAsync.await() }
 

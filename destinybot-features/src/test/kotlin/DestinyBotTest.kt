@@ -26,6 +26,7 @@ class DestinyBotTest {
     @Test
     fun testWeeklyReport() {
         runBlocking {
+            println(getLatestWeeklyReportURL())
             assertNotNull(getImage("https:${getLatestWeeklyReportURL()}").toByteArray())
         }
     }
