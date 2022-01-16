@@ -26,6 +26,8 @@ module destinybot.features {
     exports net.origind.destinybot.features.apex;
     exports net.origind.destinybot.features.bilibili;
     exports net.origind.destinybot.features.destiny;
+    exports net.origind.destinybot.features.github;
+    exports net.origind.destinybot.features.instatus;
     exports net.origind.destinybot.features.minecraft;
     exports net.origind.destinybot.features.yahtzee;
 

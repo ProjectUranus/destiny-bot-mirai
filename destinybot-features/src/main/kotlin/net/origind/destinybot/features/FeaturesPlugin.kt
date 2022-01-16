@@ -12,6 +12,7 @@ import net.origind.destinybot.features.bilibili.StreamerCommand
 import net.origind.destinybot.features.bilibili.bilibiliConfig
 import net.origind.destinybot.features.destiny.*
 import net.origind.destinybot.features.github.GitHubCommand
+import net.origind.destinybot.features.instatus.InstatusAPI
 import net.origind.destinybot.features.minecraft.MinecraftConfig
 import net.origind.destinybot.features.minecraft.MinecraftVersionCommand
 import net.origind.destinybot.features.minecraft.PingCommand
@@ -33,6 +34,7 @@ class FeaturesPlugin : Plugin {
         bilibiliConfig = BilibiliConfig(config)
         minecraftConfig = MinecraftConfig(config)
         PingCommand.reloadConfig(config)
+        InstatusAPI.reloadConfig(config)
     }
 
     override suspend fun reload() {
