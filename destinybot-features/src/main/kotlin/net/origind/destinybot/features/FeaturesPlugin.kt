@@ -12,6 +12,7 @@ import net.origind.destinybot.features.bilibili.StreamerCommand
 import net.origind.destinybot.features.bilibili.bilibiliConfig
 import net.origind.destinybot.features.destiny.*
 import net.origind.destinybot.features.github.GitHubCommand
+import net.origind.destinybot.features.injdk.InjdkCommand
 import net.origind.destinybot.features.instatus.InstatusAPI
 import net.origind.destinybot.features.minecraft.MinecraftConfig
 import net.origind.destinybot.features.minecraft.MinecraftVersionCommand
@@ -39,6 +40,7 @@ class FeaturesPlugin : Plugin {
 
     override suspend fun reload() {
         MinecraftVersionCommand.reload()
+        InjdkCommand.reload()
     }
 
     override fun registerCommand(manager: CommandManager) {
@@ -61,6 +63,8 @@ class FeaturesPlugin : Plugin {
         manager.register(SearchCommand)
         manager.register(TrackerCommand)
         manager.register(WeeklyReportCommand)
+
+        manager.register(InjdkCommand)
 
         // GitHub Commands
         manager.register(GitHubCommand)
