@@ -3,6 +3,7 @@ package net.origind.destinybot.core.command
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.MemberPermission
 import net.origind.destinybot.api.command.*
+import java.nio.charset.StandardCharsets
 
 object RankingCommand: AbstractCommand("设置头衔") {
     init {
@@ -21,8 +22,8 @@ object RankingCommand: AbstractCommand("设置头衔") {
                 executor.sendMessage("机器人不是群主。")
                 return
             }
-            if (specialTitle.length !in 1..6) {
-                executor.sendMessage("头衔长度应处于 1~6 之间")
+            if (specialTitle.toByteArray(StandardCharsets.UTF_8).size > 18) {
+                executor.sendMessage("请注意在 UTF-8 编码中大于 18 字节的头衔会被裁断。")
             }
             if (qq !in group) {
                 executor.sendMessage("要设置的成员不在群中")
