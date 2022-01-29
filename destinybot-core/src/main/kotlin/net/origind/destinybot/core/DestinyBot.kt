@@ -79,7 +79,10 @@ object DestinyBot : Closeable {
     private fun registerCommands() {
         // Base Commands
         CommandManager.register(HelpCommand)
+
+        CommandManager.register(AnnouncementCommand)
         CommandManager.register(ConfigCommand)
+        CommandManager.register(GroupListCommand)
         CommandManager.register(RankingCommand)
         CommandManager.register(ReloadCommand)
     }

@@ -16,6 +16,8 @@ module destinybot.core {
     requires com.squareup.moshi;
     requires com.electronwill.nightconfig.core;
     requires com.electronwill.nightconfig.toml;
+    requires kotlinx.serialization.json.jvm;
+    requires kotlinx.serialization.core.jvm;
 
     exports net.origind.destinybot.core;
 }

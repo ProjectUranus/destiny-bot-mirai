@@ -1,10 +1,13 @@
 package net.origind.destinybot.core.command
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.announcement.OnlineAnnouncement
+import net.mamoe.mirai.contact.announcement.OfflineAnnouncement
 import net.origind.destinybot.api.command.*
 import net.origind.destinybot.core.util.ContactAdapter
 import net.origind.destinybot.core.util.decodeGZIPBase64
@@ -33,8 +36,8 @@ object AnnouncementCommand: AbstractCommand("/announcement") {
                     executor.sendMessage("不是群管理无法恢复。")
                     return
                 }
-                val announcements = moshi.adapter<List<OnlineAnnouncement>>(Types.newParameterizedType(List::class.java, OnlineAnnouncement::class.java)).fromJson(data)
-                announcements?.forEach { group.announcements.publish(it) }
+                val announcements = Json.decodeFromString(ListSerializer(OfflineAnnouncement.serializer()), data)
+                announcements.forEach { group.announcements.publish(it) }
             } else {
                 executor.sendMessage("不是群管理无法恢复。")
             }
@@ -49,7 +52,12 @@ object AnnouncementCommand: AbstractCommand("/announcement") {
         override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
             if (executor is MiraiUserCommandExecutor && executor.user is Member) {
                 val group = executor.user.group
-                val data = moshi.adapter<List<OnlineAnnouncement>>(Types.newParameterizedType(List::class.java, OnlineAnnouncement::class.java)).toJson(group.announcements.toList())
+                val data = Json.encodeToString(ListSerializer(OfflineAnnouncement.serializer()), group.announcements.asFlow().map {
+                    OfflineAnnouncement.create(
+                        it.content,
+                        it.parameters
+                    )
+                }.toList())
                 executor.sendMessage(data.toGZIPCompressedBase64Encoded())
             } else {
                 executor.sendMessage("请在群聊中调用。")
