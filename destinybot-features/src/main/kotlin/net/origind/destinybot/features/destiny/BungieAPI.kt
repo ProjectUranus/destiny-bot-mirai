@@ -4,38 +4,38 @@ import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
 import net.origind.destinybot.features.destiny.response.*
 import net.origind.destinybot.features.getJson
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 const val endpoint = "https://www.bungie.net/Platform"
 const val key = "9654e41465f34fb6a7aea347abd5deeb"
 
-suspend fun getDestinyProfiles(membershipId: String, membershipType: Int): UserMembershipData? =
-    getJson<GetMembershipsResponse>("$endpoint/User/GetMembershipsById/$membershipId/$membershipType/") {
+suspend fun getDestinyProfiles(displayName: String, displayNameCode: Int, membershipType: Int): DestinyMembershipQuery? =
+    getJson<GetMembershipsResponse>("$endpoint/Destiny2/SearchDestinyPlayerByBungieName/$membershipType/") {
         header("X-API-Key", key)
-    }.Response
+        post("""{"displayName": "$displayName", "displayNameCode": $displayNameCode}""".toRequestBody("application/json".toMediaType()))
+    }.Response.firstOrNull()
 
-suspend fun bungieUserToDestinyUser(membershipId: String): DestinyMembershipQuery? = withContext(Dispatchers.IO) { getDestinyProfiles(membershipId, 3) }?.destinyMemberships?.firstOrNull()
+suspend fun bungieUserToDestinyUser(displayName: String, displayNameCode: Int): DestinyMembershipQuery? = withContext(Dispatchers.IO) { getDestinyProfiles(displayName, displayNameCode, 3) }
 
 suspend fun searchUsers(criteria: String): Set<DestinyMembershipQuery> {
     val result =
         withContext(Dispatchers.Default) { searchUsersInternal(criteria) }
-    val profiles =
-        withContext(Dispatchers.Default) { searchProfiles(criteria) }
-    if (result.isEmpty() && profiles.isEmpty()) {
+    if (result.isEmpty()) {
         throw PlayerNotFoundException("没有搜索到玩家，请检查你的搜索内容")
     }
 
     // Filter Destiny 2 players
     val players = mutableSetOf<DestinyMembershipQuery>()
-    players.addAll(profiles)
     result.map { profile ->
         GlobalScope.launch {
             try {
-                val destinyMembership = bungieUserToDestinyUser(profile.membershipId)
+                val destinyMembership = bungieUserToDestinyUser(profile.bungieGlobalDisplayName, profile.bungieGlobalDisplayNameCode)
                 if (destinyMembership != null) {
                     players.add(destinyMembership)
                 }
             } catch (e: ConnectTimeoutException) {
-                throw ConnectTimeoutException("尝试获取玩家 ${profile.steamDisplayName ?: profile.displayName} 信息时超时。", e)
+                throw ConnectTimeoutException("尝试获取玩家 $profile 信息时超时。", e)
             }
         }
     }.joinAll()
@@ -49,14 +49,15 @@ suspend fun searchUsersProfile(criteria: String) =
 
 
 suspend fun searchUsersInternal(criteria: String): List<GeneralUser> =
-    getJson<UserSearchResponse>("$endpoint/User/SearchUsers/?q=$criteria") {
+    getJson<UserSearchResponse>("$endpoint/User/Search/Prefix/$criteria/0/") {
         header("X-API-Key", key)
-    }.Response
+    }.Response?.searchResults!!
 
 
 suspend fun searchProfiles(criteria: String): List<DestinyMembershipQuery> =
     getJson<DestinyProfileSearchResponse>("$endpoint/Destiny2/SearchDestinyPlayer/TigerSteam/$criteria/ ") {
         header("X-API-Key", key)
+        post("""{"displayNamePrefix":"$criteria"}""".toRequestBody("application/json".toMediaType()))
     }.Response
 
 suspend fun getProfile(membershipType: Int, membershipId: String): DestinyProfile? =

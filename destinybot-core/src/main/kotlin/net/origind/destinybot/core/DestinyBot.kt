@@ -13,9 +13,11 @@ import net.origind.destinybot.core.command.*
 import net.origind.destinybot.features.DataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.awt.GraphicsEnvironment
 import java.io.Closeable
 import java.nio.file.Paths
 import java.util.*
+import kotlin.system.exitProcess
 
 object DestinyBot : Closeable {
     val bot: Bot
@@ -24,6 +26,9 @@ object DestinyBot : Closeable {
     var plugins: List<Plugin> = emptyList()
 
     init {
+        System.setProperty("java.awt.headless", "true")
+        println("Headless mode: " + GraphicsEnvironment.isHeadless())
+
         logger = LoggerFactory.getLogger("DestinyBot")
 
         config = FileConfig.builder(Paths.get("config.toml"), TomlFormat.instance()).concurrent().autosave().build()
@@ -54,6 +59,10 @@ object DestinyBot : Closeable {
     }
 
     suspend fun init() {
+        if (!GraphicsEnvironment.isHeadless()) {
+            logger.error("Headless is not set to true, check your settings!");
+            exitProcess(-1);
+        }
         DataStore.init()
         bot.login()
         logger.info("Logged in")

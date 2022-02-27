@@ -22,10 +22,3 @@ application {
 dependencies {
     implementation project(":destinybot-core")
 }
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "16"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "16"
-}

@@ -3,21 +3,26 @@ package net.origind.destinybot.features.destiny.response
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class GeneralUser(var membershipId: String = "", var displayName: String = "",
-                       var uniqueName: String = "", var xboxDisplayName: String? = "", var psnDisplayName: String? = "", var steamDisplayName: String? = "",
-                       var firstAccess: String = "")
+data class DestinySearchUsersResponse(var searchResults: List<GeneralUser> = emptyList())
+
+@JsonClass(generateAdapter = true)
+data class GeneralUser(var bungieNetMembershipId: String = "", var bungieGlobalDisplayName: String = "", var bungieGlobalDisplayNameCode: Int = 0,
+                       var firstAccess: String = "", var destinyMemberships: List<DestinyMembershipQuery> = emptyList()) {
+    override fun toString(): String = "$bungieGlobalDisplayName#$bungieGlobalDisplayNameCode"
+}
+
 
 @JsonClass(generateAdapter = true)
 data class UserMembershipData(var bungieNetUser: GeneralUser = GeneralUser(), var destinyMemberships: List<DestinyMembershipQuery> = emptyList())
 
 @JsonClass(generateAdapter = true)
-class GetMembershipsResponse : SingleResponse<UserMembershipData>()
+class GetMembershipsResponse : BungieMultiResponse<DestinyMembershipQuery>()
 
 @JsonClass(generateAdapter = true)
-class UserSearchResponse : BungieMultiResponse<GeneralUser>()
+class UserSearchResponse : SingleResponse<DestinySearchUsersResponse>()
 
 @JsonClass(generateAdapter = true)
-data class DestinyMembershipQuery(var membershipType: Int = 0, var membershipId: String = "", var displayName: String = "", var isPublic: Boolean = false) {
+data class DestinyMembershipQuery(var membershipType: Int = 0, var membershipId: String = "", var displayName: String = "", var isPublic: Boolean = false, var bungieGlobalDisplayName: String = "", var bungieGlobalDisplayNameCode: Int = 0) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DestinyMembershipQuery) return false
@@ -33,6 +38,8 @@ data class DestinyMembershipQuery(var membershipType: Int = 0, var membershipId:
         result = 31 * result + membershipId.hashCode()
         return result
     }
+
+    override fun toString(): String = "$displayName ($bungieGlobalDisplayName#$bungieGlobalDisplayNameCode)"
 }
 
 @JsonClass(generateAdapter = true)
