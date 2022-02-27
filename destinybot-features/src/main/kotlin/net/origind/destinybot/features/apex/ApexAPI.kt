@@ -12,9 +12,10 @@ class ApexApiException(message: String) : IOException(message)
 
 fun localizeMapName(map: String) = when(map) {
     "Kings Canyon" -> "诸王峡谷"
-    "World's Edge" -> "世界边缘"
+    "World's Edge" -> "世界尽头"
     "Olympus" -> "奥林匹斯"
-    else -> "无"
+    "Storm Point" -> "风暴点"
+    else -> map
 }
 
 fun localizeRankName(rank: String) = when(rank) {
