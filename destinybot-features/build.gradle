@@ -6,7 +6,7 @@ plugins {
 group 'net.origind.destinybot.features'
 version project["features.version"]
 
-sourceCompatibility = targetCompatibility = "16"
+sourceCompatibility = targetCompatibility = "17"
 
 repositories {
     mavenCentral()
@@ -42,8 +42,8 @@ test {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "16"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "16"
 }

@@ -16,7 +16,7 @@ val client: OkHttpClient = OkHttpClient.Builder()
     .retryOnConnectionFailure(true)
     .followRedirects(true)
     .followSslRedirects(true)
-    .callTimeout(10, TimeUnit.SECONDS)
+    .callTimeout(15, TimeUnit.SECONDS)
     .build()
 
 

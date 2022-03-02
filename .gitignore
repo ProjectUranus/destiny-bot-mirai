@@ -28,6 +28,10 @@ build/
 mirai/
 run/
 data/
+target/
+web_cache/
+destinybot-manifest/*.json
+destiny2_images/
 
 ..bfg-report/
 config.toml

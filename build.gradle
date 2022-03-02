@@ -8,7 +8,7 @@ plugins {
 group 'net.origind.destinybot'
 version '1.0'
 
-sourceCompatibility = targetCompatibility = "16"
+sourceCompatibility = targetCompatibility = "17"
 
 repositories {
     mavenCentral()

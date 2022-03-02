@@ -9,6 +9,7 @@ import net.origind.destinybot.features.apex.MapRotationCommand
 import net.origind.destinybot.features.apex.ProfileCommand
 import net.origind.destinybot.features.bilibili.BilibiliConfig
 import net.origind.destinybot.features.bilibili.StreamerCommand
+import net.origind.destinybot.features.bilibili.VTuberCommand
 import net.origind.destinybot.features.bilibili.bilibiliConfig
 import net.origind.destinybot.features.destiny.*
 import net.origind.destinybot.features.github.GitHubCommand
@@ -50,6 +51,7 @@ class FeaturesPlugin : Plugin {
 
         // Bilibili Commands
         manager.register(StreamerCommand)
+        manager.register(VTuberCommand)
 
         // Destiny Commands
         manager.register(ActivityCommand)
