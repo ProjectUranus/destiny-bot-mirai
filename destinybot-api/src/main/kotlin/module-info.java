@@ -1,4 +1,5 @@
 module destinybot.api {
+    requires java.base;
     requires kotlin.stdlib;
     requires kotlinx.coroutines.core.jvm;
     requires org.slf4j;
@@ -8,4 +9,5 @@ module destinybot.api {
     exports net.origind.destinybot.api.command;
     exports net.origind.destinybot.api.plugin;
     exports net.origind.destinybot.api.util;
+    exports net.origind.destinybot.api.timer;
 }

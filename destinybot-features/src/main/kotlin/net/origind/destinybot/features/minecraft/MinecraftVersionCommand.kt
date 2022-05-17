@@ -61,12 +61,7 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
         }
         when (main) {
             "/release" -> {
-                val builder = if (versionManifest.latest?.snapshot == versionManifest.latest?.release) {
-                    StringBuilder("最新版本 ")
-                }
-                else {
-                    StringBuilder("最新预览版 ")
-                }
+                val builder = StringBuilder("最新版本 ")
                 buildMinecraftVersionMessage(
                     versionManifest.latest?.release!!,
                     builder
@@ -74,7 +69,12 @@ object MinecraftVersionCommand: AbstractCustomCommand("mc版本") {
                 executor.sendMessage(builder.toString())
             }
             "/latest" -> {
-                val builder = StringBuilder("最新版本 ")
+                val builder = if (versionManifest.latest?.snapshot == versionManifest.latest?.release) {
+                    StringBuilder("最新版本 ")
+                }
+                else {
+                    StringBuilder("最新预览版 ")
+                }
                 buildMinecraftVersionMessage(
                     versionManifest.latest?.snapshot!!,
                     builder

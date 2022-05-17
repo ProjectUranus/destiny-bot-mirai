@@ -24,3 +24,9 @@ test {
     useJUnitPlatform()
 }
 
+compileKotlin {
+    kotlinOptions.jvmTarget = "16"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "16"
+}

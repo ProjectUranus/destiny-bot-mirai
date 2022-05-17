@@ -19,6 +19,7 @@ import net.origind.destinybot.features.minecraft.MinecraftConfig
 import net.origind.destinybot.features.minecraft.MinecraftVersionCommand
 import net.origind.destinybot.features.minecraft.PingCommand
 import net.origind.destinybot.features.minecraft.minecraftConfig
+import net.origind.destinybot.features.timer.TimerCommand
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -74,5 +75,6 @@ class FeaturesPlugin : Plugin {
         // Minecraft Commands
         manager.register(PingCommand)
         manager.register(MinecraftVersionCommand)
+        manager.register(TimerCommand)
     }
 }

@@ -9,13 +9,17 @@ import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.utils.BotConfiguration
 import net.origind.destinybot.api.command.CommandContext
 import net.origind.destinybot.api.plugin.Plugin
+import net.origind.destinybot.api.timer.TimedTask
+import net.origind.destinybot.api.timer.TimerManager
 import net.origind.destinybot.core.command.*
+import net.origind.destinybot.core.task.checkStreamer
 import net.origind.destinybot.features.DataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.GraphicsEnvironment
 import java.io.Closeable
 import java.nio.file.Paths
+import java.time.Duration
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -39,6 +43,7 @@ object DestinyBot : Closeable {
             fileBasedDeviceInfo()
             protocol = BotConfiguration.MiraiProtocol.ANDROID_PHONE
         }
+        TimerManager // init
     }
 
     fun loadPlugins() {
@@ -68,6 +73,7 @@ object DestinyBot : Closeable {
         logger.info("Logged in")
         bot.subscribeMessages()
         registerCommands()
+        registerTasks()
         CommandManager.init()
         logger.info("Fetched Little Light Wishlist")
 
@@ -94,6 +100,10 @@ object DestinyBot : Closeable {
         CommandManager.register(GroupListCommand)
         CommandManager.register(RankingCommand)
         CommandManager.register(ReloadCommand)
+    }
+
+    private fun registerTasks() {
+        TimerManager.schedule("checkstreamer", TimedTask(::checkStreamer, Duration.ofSeconds(150)))
     }
 
     private fun Bot.subscribeMessages() {
