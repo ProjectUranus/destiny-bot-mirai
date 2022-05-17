@@ -12,7 +12,23 @@ data class ArticlesData(val articles: List<Article>)
 data class Articles(val data: ArticlesData, val ttl: Int)
 
 @JsonClass(generateAdapter = true)
-data class LiveRoomInfo(val uid: Long, val room_id: Int, val title: String, val online: Int, val live_status: Int)
+data class LiveRoomInfo(val uid: Long, val room_id: Int, val title: String, val online: Int, val live_status: Int) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LiveRoomInfo) return false
+
+        if (uid != other.uid) return false
+        if (room_id != other.room_id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = uid.hashCode()
+        result = 31 * result + room_id
+        return result
+    }
+}
 
 @JsonClass(generateAdapter = true)
 data class LiveResponse(val code: Int, val data: LiveRoomInfo)

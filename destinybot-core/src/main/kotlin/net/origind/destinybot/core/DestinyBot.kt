@@ -84,6 +84,7 @@ object DestinyBot : Closeable {
     suspend fun start() {
         CommandManager.buildCache()
         logger.info("注册的命令: ${CommandManager.commands.joinToString { it.name }}")
+        TimerManager.run()
         bot.join()
     }
 
@@ -103,7 +104,7 @@ object DestinyBot : Closeable {
     }
 
     private fun registerTasks() {
-        TimerManager.schedule("checkstreamer", TimedTask(::checkStreamer, Duration.ofSeconds(150)))
+        TimerManager.schedule("checkstreamer", TimedTask(::checkStreamer, Duration.ofSeconds(30)))
     }
 
     private fun Bot.subscribeMessages() {
