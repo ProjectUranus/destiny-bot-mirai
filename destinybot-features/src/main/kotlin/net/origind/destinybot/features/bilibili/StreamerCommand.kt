@@ -22,7 +22,7 @@ object StreamerCommand: AbstractCommand("下饭主播") {
                     .asSequence()
                     .filter { it.live_status == 1 }
                     .forEach { roomInfo ->
-                        appendLine("你喜爱的主播：" + roomInfo.title + " 正在直播并有${roomInfo.online}人气值！https://live.bilibili.com/${roomInfo.room_id}")
+                        appendLine("你喜爱的主播 " + getUserInfo(roomInfo.uid)?.name() + " 正在直播: ${roomInfo.title}！https://live.bilibili.com/${roomInfo.room_id}")
                         anyOnline = true
                     }
                 if (!anyOnline) append("你喜爱的主播们都不在直播哦O(∩_∩)O")

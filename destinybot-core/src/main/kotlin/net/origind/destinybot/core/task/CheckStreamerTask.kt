@@ -8,6 +8,7 @@ import net.origind.destinybot.core.DestinyBot
 import net.origind.destinybot.features.bilibili.LiveRoomInfo
 import net.origind.destinybot.features.bilibili.bilibiliConfig
 import net.origind.destinybot.features.bilibili.getLiveRoomInfo
+import net.origind.destinybot.features.bilibili.getUserInfo
 
 private val onlineStreamers = mutableSetOf<LiveRoomInfo>()
 
@@ -36,7 +37,7 @@ suspend fun checkStreamer() {
                 .filter { it.live_status == 1 }
                 .filter { onlineStreamers.none { info -> it.room_id == info.room_id } }
                 .forEach { roomInfo ->
-                    appendLine("你喜爱的主播：" + roomInfo.title + " 正在直播并有${roomInfo.online}人气值！https://live.bilibili.com/${roomInfo.room_id}")
+                    appendLine("你喜爱的主播 " + getUserInfo(roomInfo.uid)?.name() + " 正在直播: ${roomInfo.title}！https://live.bilibili.com/${roomInfo.room_id}")
                     anyOnline = true
                     onlineStreamers += roomInfo
                 }

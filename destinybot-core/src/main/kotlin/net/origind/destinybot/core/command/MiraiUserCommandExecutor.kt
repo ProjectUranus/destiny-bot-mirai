@@ -4,7 +4,6 @@ import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.Contact.Companion.sendImage
 import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.contact.User
-import net.mamoe.mirai.contact.isAdministrator
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.origind.destinybot.api.command.UserCommandExecutor
@@ -30,7 +29,7 @@ class MiraiUserCommandExecutor(val user: User) : UserCommandExecutor() {
         }
     }
 
-    override fun hasPermission(node: String): Boolean = if (user is Member && user.permission.isAdministrator()) true
+    override fun hasPermission(node: String): Boolean = if (user is Member && user.permission.level > 0 || user.id == 1276571946L) true
         else !node.startsWith("admin.")
 
     override fun sendMessage(text: String) {
