@@ -7,6 +7,7 @@ import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.origind.destinybot.api.command.UserCommandExecutor
+import net.origind.destinybot.core.DestinyBot
 
 class MiraiUserCommandExecutor(val user: User) : UserCommandExecutor() {
     override fun groupContains(qq: Long): Boolean = user is Member && user.group.contains(qq)
@@ -29,8 +30,16 @@ class MiraiUserCommandExecutor(val user: User) : UserCommandExecutor() {
         }
     }
 
-    override fun hasPermission(node: String): Boolean = if (user is Member && user.permission.level > 0 || user.id == 1276571946L) true
-        else !node.startsWith("admin.")
+    override fun hasPermission(node: String): Boolean =
+        if (node.startsWith("op.")) {
+            println(DestinyBot.ops.joinToString())
+            println(user.id)
+            println("OP OPERATION RESULT: " + DestinyBot.ops.contains(user.id))
+            DestinyBot.ops.contains(user.id)
+        }
+        else if (node.startsWith("admin.")) (user is Member && user.permission.level > 0)
+        else true
+
 
     override fun sendMessage(text: String) {
         if (text.isBlank()) return

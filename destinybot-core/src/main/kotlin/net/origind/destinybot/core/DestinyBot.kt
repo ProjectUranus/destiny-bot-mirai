@@ -2,9 +2,12 @@ package net.origind.destinybot.core
 
 import com.electronwill.nightconfig.core.file.FileConfig
 import com.electronwill.nightconfig.toml.TomlFormat
+import it.unimi.dsi.fastutil.longs.LongArrayList
 import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.event.ListeningStatus
+import net.mamoe.mirai.event.events.MemberJoinRequestEvent
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.utils.BotConfiguration
 import net.origind.destinybot.api.command.CommandContext
@@ -28,6 +31,7 @@ object DestinyBot : Closeable {
     val logger: Logger
     val config: FileConfig
     var plugins: List<Plugin> = emptyList()
+    var ops: LongArrayList = LongArrayList()
 
     init {
         System.setProperty("java.awt.headless", "true")
@@ -38,6 +42,7 @@ object DestinyBot : Closeable {
         config = FileConfig.builder(Paths.get("config.toml"), TomlFormat.instance()).concurrent().autosave().build()
 
         config.load()
+        ops = LongArrayList(config.get<List<Number>>("bot.ops").map { it.toLong() })
 
         bot = BotFactory.newBot(config.get("account.qq"), config.get<String>("account.password")) {
             fileBasedDeviceInfo()
@@ -101,6 +106,10 @@ object DestinyBot : Closeable {
         CommandManager.register(GroupListCommand)
         CommandManager.register(RankingCommand)
         CommandManager.register(ReloadCommand)
+        CommandManager.register(OpsCommand)
+        CommandManager.register(MemberJoinRequestCommand)
+        CommandManager.register(KickCommand)
+        CommandManager.register(AdminCommand)
     }
 
     private fun registerTasks() {
@@ -116,6 +125,11 @@ object DestinyBot : Closeable {
             case("花园世界").reply("前往罗斯128b，与你的扭曲人伙伴们一起延缓凋零的复苏。")
             case("小行星带").reply("调查新近出现的bart遗迹，查明它的装配线生成概率。")
             case("咱…").reply("咱…")
+        }
+        eventChannel.subscribe<MemberJoinRequestEvent> {
+            MemberJoinRequestCommand.events += it
+            group?.sendMessage("$fromNick ($fromId) 申请加群，/jr list后可以用/jr accept，/jr deny或/jr ignore来处理请求。")
+            ListeningStatus.LISTENING
         }
     }
 
