@@ -10,10 +10,11 @@ object OpCommand: AbstractCommand("/op") {
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
         if (executor is MiraiUserCommandExecutor && executor.user.id in DestinyBot.ops) {
-            DestinyBot.ops += argument.getArgument<Long>("id")
+            val id = argument.getArgument<Long>("id")
+            DestinyBot.ops += id
             DestinyBot.config.set<MutableList<Long>>("bot.ops", DestinyBot.ops)
             DestinyBot.config.save()
-            executor.sendMessage("Opped ${executor.user.id}")
+            executor.sendMessage("Opped $id")
         } else {
             executor.sendMessage("无权执行该命令。")
         }

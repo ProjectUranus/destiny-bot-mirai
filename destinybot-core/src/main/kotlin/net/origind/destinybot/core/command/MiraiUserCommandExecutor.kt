@@ -31,10 +31,7 @@ class MiraiUserCommandExecutor(val user: User) : UserCommandExecutor() {
     }
 
     override fun hasPermission(node: String): Boolean =
-        if (node.startsWith("op.")) {
-            println(DestinyBot.ops.joinToString())
-            println(user.id)
-            println("OP OPERATION RESULT: " + DestinyBot.ops.contains(user.id))
+        if (node.startsWith("op.") || node.startsWith("admin.")) {
             DestinyBot.ops.contains(user.id)
         }
         else if (node.startsWith("admin.")) (user is Member && user.permission.level > 0)

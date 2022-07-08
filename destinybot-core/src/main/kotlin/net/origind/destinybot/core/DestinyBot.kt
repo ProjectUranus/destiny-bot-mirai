@@ -107,6 +107,8 @@ object DestinyBot : Closeable {
         CommandManager.register(RankingCommand)
         CommandManager.register(ReloadCommand)
         CommandManager.register(OpsCommand)
+        CommandManager.register(OpCommand)
+        CommandManager.register(DeopCommand)
         CommandManager.register(MemberJoinRequestCommand)
         CommandManager.register(KickCommand)
         CommandManager.register(AdminCommand)

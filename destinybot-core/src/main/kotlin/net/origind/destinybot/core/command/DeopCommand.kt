@@ -10,10 +10,11 @@ object DeopCommand: AbstractCommand("/deop") {
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
         if (executor is MiraiUserCommandExecutor && DestinyBot.ops.contains(executor.user.id)) {
-            DestinyBot.ops -= argument.getArgument<Long>("id")
+            val id = argument.getArgument<Long>("id")
+            DestinyBot.ops -= id
             DestinyBot.config.set<MutableList<Long>>("bot.ops", DestinyBot.ops)
             DestinyBot.config.save()
-            executor.sendMessage("De-Opped ${executor.user.id}")
+            executor.sendMessage("De-Opped $id")
         } else {
             executor.sendMessage("无权执行该命令。")
         }
