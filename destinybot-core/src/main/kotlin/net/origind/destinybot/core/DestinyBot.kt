@@ -16,6 +16,7 @@ import net.origind.destinybot.api.timer.TimedTask
 import net.origind.destinybot.api.timer.TimerManager
 import net.origind.destinybot.core.command.*
 import net.origind.destinybot.core.task.checkStreamer
+import net.origind.destinybot.core.util.getOrThrow
 import net.origind.destinybot.features.DataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,11 +43,14 @@ object DestinyBot : Closeable {
         config = FileConfig.builder(Paths.get("config.toml"), TomlFormat.instance()).concurrent().autosave().build()
 
         config.load()
-        ops = LongArrayList(config.get<List<Number>>("bot.ops").map { it.toLong() })
+        ops = LongArrayList(config.getOrElse<List<Number>>("bot.ops", listOf()).map { it.toLong() })
 
-        bot = BotFactory.newBot(config.get("account.qq"), config.get<String>("account.password")) {
+        bot = BotFactory.newBot(
+			config.getOrThrow("account.qq") { IllegalArgumentException("配置中未设置账号") },
+			config.getOrThrow<String>("account.password") { IllegalArgumentException("配置中未设置密码") }
+		) {
             fileBasedDeviceInfo()
-            protocol = BotConfiguration.MiraiProtocol.ANDROID_PHONE
+            protocol = BotConfiguration.MiraiProtocol.ANDROID_PAD
         }
         TimerManager // init
     }
