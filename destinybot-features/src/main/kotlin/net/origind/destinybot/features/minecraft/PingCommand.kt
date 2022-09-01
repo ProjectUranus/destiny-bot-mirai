@@ -59,13 +59,13 @@ object PingCommand: AbstractCommand("/ping") {
                     }
                 }
             } else {
-                try {
-                    status(executor, minecraftConfig.default.host!!, minecraftConfig.default.port)
-                } catch (e: Exception) {
-                    if (e is NullPointerException) {
-                        executor.sendMessage("未设置默认服务器。")
-                        executor.sendMessage(getHelp())
-                    } else {
+                if(minecraftConfig.default.host == null) {
+                    executor.sendMessage("未设置默认服务器。")
+                    executor.sendMessage(getHelp())
+                } else {
+                    try {
+                        status(executor, minecraftConfig.default.host!!, minecraftConfig.default.port)
+                    } catch (e: Exception) {
                         executor.sendMessage("连接失败: " + e.localizedMessage)
                     }
                 }

@@ -36,3 +36,6 @@ destiny2_images/
 ..bfg-report/
 config.toml
 config.json
+device.json
+version_manifest.json
+/cache
