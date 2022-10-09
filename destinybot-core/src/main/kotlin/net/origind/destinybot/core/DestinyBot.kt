@@ -18,6 +18,7 @@ import net.origind.destinybot.core.command.*
 import net.origind.destinybot.core.task.checkStreamer
 import net.origind.destinybot.core.util.getOrThrow
 import net.origind.destinybot.features.DataStore
+import net.origind.destinybot.features.romajitable.RomajiTable
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.GraphicsEnvironment
@@ -33,6 +34,7 @@ object DestinyBot : Closeable {
     val config: FileConfig
     var plugins: List<Plugin> = emptyList()
     var ops: LongArrayList = LongArrayList()
+    var sudoEnabledGroups: LongArrayList = LongArrayList()
 
     init {
         System.setProperty("java.awt.headless", "true")
@@ -44,6 +46,7 @@ object DestinyBot : Closeable {
 
         config.load()
         ops = LongArrayList(config.getOrElse<List<Number>>("bot.ops", listOf()).map { it.toLong() })
+        sudoEnabledGroups = LongArrayList(config.getOrElse<List<Number>>("bot.sudoEnabledGroups", listOf()).map { it.toLong() })
 
         bot = BotFactory.newBot(
 			config.getOrThrow("account.qq") { IllegalArgumentException("配置中未设置账号") },
@@ -113,6 +116,7 @@ object DestinyBot : Closeable {
         CommandManager.register(OpsCommand)
         CommandManager.register(OpCommand)
         CommandManager.register(DeopCommand)
+//        CommandManager.register(SudoCommand)
         CommandManager.register(MemberJoinRequestCommand)
         CommandManager.register(KickCommand)
         CommandManager.register(AdminCommand)
@@ -131,6 +135,20 @@ object DestinyBot : Closeable {
             case("花园世界").reply("前往罗斯128b，与你的扭曲人伙伴们一起延缓凋零的复苏。")
             case("小行星带").reply("调查新近出现的bart遗迹，查明它的装配线生成概率。")
             case("咱…").reply("咱…")
+            startsWith("片假转换 ") { s ->
+                subject.sendMessage(
+                    s.uppercase().split("\\s+".toRegex()).map {
+                        if (it in RomajiTable.katakanaTable) {
+                            RomajiTable.katakanaTable[it]
+                        } else {
+                            RomajiTable.romajiConvert(it)
+                        }
+                    }.joinToString("・")
+                )
+            }
+            startsWith("片假消灭 ") {
+
+            }
         }
         eventChannel.subscribe<MemberJoinRequestEvent> {
             MemberJoinRequestCommand.events += it

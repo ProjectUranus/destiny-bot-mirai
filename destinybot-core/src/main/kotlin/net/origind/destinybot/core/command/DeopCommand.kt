@@ -5,7 +5,7 @@ import net.origind.destinybot.core.DestinyBot
 
 object DeopCommand: AbstractCommand("/deop") {
     init {
-        arguments += ArgumentContext("id", LongArgument)
+        arguments += ArgumentContext("id", QQArgument)
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {

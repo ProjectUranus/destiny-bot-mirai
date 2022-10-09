@@ -23,7 +23,7 @@ object VTuberCommand : AbstractCommand("查成分") {
         if (info.mid == 0L) {
             executor.sendMessage("获取用户信息失败，请检查你的搜索关键词或mid。")
         } else {
-            executor.sendMessage("${info.name()} 关注的 VUP 有：" + sameFollow(bilibiliConfig.cookie, info.mid).joinToString { it.name() })
+            executor.sendMessage("${info.name()} 关注的 VUP 有：" + sameFollow(bilibiliConfig.cookie, info?.mid ?: 0).joinToString { it.name() })
         }
 
     }

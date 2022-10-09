@@ -6,7 +6,7 @@ import net.origind.destinybot.features.DataStore
 
 object BindAccountCommand : AbstractCommand("绑定") {
     init {
-        arguments += ArgumentContext("id", LongArgument)
+        arguments += ArgumentContext("id", QQArgument)
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {

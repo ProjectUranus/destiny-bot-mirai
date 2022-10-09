@@ -24,6 +24,12 @@ object LongArgument: ArgumentType<Long> {
     override fun parse(literal: String): Long = literal.toLongOrNull() ?: throw ArgumentParseException("Not a valid long")
 }
 
+object QQArgument: ArgumentType<Long> {
+    override val clazz: Class<Long> = Long::class.java
+
+    override fun parse(literal: String): Long = literal.removePrefix("@").toLongOrNull() ?: throw ArgumentParseException("Not a valid qq number")
+}
+
 object DoubleArgument: ArgumentType<Double> {
     override val clazz: Class<Double> = Double::class.java
 

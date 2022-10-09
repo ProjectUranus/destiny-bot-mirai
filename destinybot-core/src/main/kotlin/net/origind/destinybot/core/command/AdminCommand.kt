@@ -14,7 +14,7 @@ object AdminCommand : AbstractCommand("/admin") {
     object Enable : AbstractCommand("enable") {
         init {
             permission = "op.admin.enable"
-            arguments += ArgumentContext("id", LongArgument)
+            arguments += ArgumentContext("id", QQArgument)
         }
 
         override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {
@@ -27,7 +27,7 @@ object AdminCommand : AbstractCommand("/admin") {
     object Disable : AbstractCommand("disable") {
         init {
             permission = "op.admin.disable"
-            arguments += ArgumentContext("id", LongArgument)
+            arguments += ArgumentContext("id", QQArgument)
         }
 
         override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {

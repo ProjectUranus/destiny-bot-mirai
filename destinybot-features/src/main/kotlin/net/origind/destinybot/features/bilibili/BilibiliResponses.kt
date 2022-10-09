@@ -58,6 +58,6 @@ data class BilibiliSameFollowResponse(var code: Int = 0, var message: String = "
 data class BilibiliSameFollowDataResponse(var total: Int = 0, var list: List<BilibiliUser> = emptyList())
 
 @JsonClass(generateAdapter = true)
-data class BilibiliUser(var mid: Long, var uname: String? = null, var name: String? = null) {
+data class BilibiliUser(var mid: Long? = null, var uname: String? = null, var name: String? = null) {
     fun name() = uname ?: name ?: ""
 }

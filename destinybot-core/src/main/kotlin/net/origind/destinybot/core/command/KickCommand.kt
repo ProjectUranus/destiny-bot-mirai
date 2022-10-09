@@ -7,7 +7,7 @@ import net.origind.destinybot.api.command.*
 object KickCommand : AbstractCommand("/kick") {
     init {
         permission = "op.kick"
-        arguments += ArgumentContext("id", LongArgument)
+        arguments += ArgumentContext("id", QQArgument)
     }
 
     override suspend fun execute(argument: ArgumentContainer, executor: CommandExecutor, context: CommandContext) {

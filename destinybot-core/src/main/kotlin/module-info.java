@@ -12,6 +12,7 @@ module destinybot.core {
 
     requires transitive destinybot.api;
     requires transitive destinybot.features;
+
     requires com.squareup.moshi.kotlin;
     requires com.squareup.moshi;
     requires com.electronwill.nightconfig.core;

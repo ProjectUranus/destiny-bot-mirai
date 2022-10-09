@@ -30,6 +30,7 @@ module destinybot.features {
     exports net.origind.destinybot.features.instatus;
     exports net.origind.destinybot.features.minecraft;
     exports net.origind.destinybot.features.yahtzee;
+    exports net.origind.destinybot.features.romajitable;
 
     provides Plugin with FeaturesPlugin;
 }

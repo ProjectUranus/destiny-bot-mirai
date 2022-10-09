@@ -1,3 +1,3 @@
 package net.origind.destinybot.core
 
-data class BotConfig(var ops: List<Long> = emptyList())
+data class BotConfig(var sudoEnabledGroups: List<Int> = listOf())
