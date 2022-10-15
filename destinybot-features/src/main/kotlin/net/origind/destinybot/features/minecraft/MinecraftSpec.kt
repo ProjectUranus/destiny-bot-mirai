@@ -18,6 +18,7 @@ class MinecraftConfig(config: Config) {
 				it.key.lowercase() to MinecraftServerSpec(address.hostString, address.port)
 			}.toMap()
 	val ignoreCase: Boolean = config.getOrElse("minecraft.ignoreCase", true)
+	val timeoutMillis: Long = config.getLongOrElse("minecraft.timeout", 3000)
 }
 
 data class MinecraftServerSpec(var host: String? = null, var port: Int = 25565)

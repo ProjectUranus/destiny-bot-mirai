@@ -11,6 +11,7 @@ sourceCompatibility = targetCompatibility = "16"
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.opencollab.dev/maven-releases' }
 }
 
 dependencies {
@@ -29,7 +30,7 @@ dependencies {
     implementation 'it.unimi.dsi:fastutil:8.5.6'
     implementation 'com.projecturanus:suffixtree:1.0'
 
-    implementation 'com.github.Steveice10:MCProtocolLib:1.18-2'
+    implementation 'com.github.steveice10:mcprotocollib:1.19-1'
 
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'

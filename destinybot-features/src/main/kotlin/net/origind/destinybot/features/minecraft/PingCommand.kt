@@ -44,10 +44,12 @@ object PingCommand: AbstractCommand("/ping") {
                 val server = argument.getArgument<String>("server")
                 if (MinecraftServerAddressArgument.isServer(server)) {
                     val server = MinecraftServerAddressArgument.parse(server)
-                    println("正在测试到服务器 $server 的延迟")
+                    executor.sendMessage("正在测试到服务器 $server 的延迟")
                     try {
-                        status(executor, server.hostString, server.port)
-                    } catch (e: Exception) {
+                        withTimeout(minecraftConfig.timeoutMillis) { status(executor, server.hostString, server.port) }
+                    } catch (e: TimeoutCancellationException) {
+                        executor.sendMessage("服务器连接超时")
+                    }  catch (e: Exception) {
                         executor.sendMessage("连接失败: " + e.localizedMessage)
                     }
                 } else {
@@ -64,7 +66,9 @@ object PingCommand: AbstractCommand("/ping") {
                     executor.sendMessage(getHelp())
                 } else {
                     try {
-                        status(executor, minecraftConfig.default.host!!, minecraftConfig.default.port)
+                        withTimeout(minecraftConfig.timeoutMillis) { status(executor, minecraftConfig.default.host!!, minecraftConfig.default.port) }
+                    } catch (e: TimeoutCancellationException) {
+                        executor.sendMessage("服务器连接超时")
                     } catch (e: Exception) {
                         executor.sendMessage("连接失败: " + e.localizedMessage)
                     }

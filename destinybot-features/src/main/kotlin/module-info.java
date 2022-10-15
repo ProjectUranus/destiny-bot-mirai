@@ -12,7 +12,7 @@ module destinybot.features {
     requires kotlin.stdlib;
     requires okhttp3;
     requires kotlinx.coroutines.core.jvm;
-    requires MCProtocolLib;
+    requires mcprotocollib;
     requires packetlib;
     requires ktor.client.core.jvm;
     requires java.desktop;
