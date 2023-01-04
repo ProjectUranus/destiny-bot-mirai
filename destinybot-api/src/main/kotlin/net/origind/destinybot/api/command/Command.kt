@@ -70,14 +70,14 @@ interface Command {
                     parser.take()
                     getSubcommand(sub)?.parse(parser, executor, context)
                 } else {
-                    argumentContainer.parse(parser)
+                    argumentContainer.parse(parser, executor, context)
                     if (executor.hasPermission(permission))
                         execute(argumentContainer, executor, context)
                     else
                         executor.sendMessage("你无权执行该命令")
                 }
             } else {
-                argumentContainer.parse(parser)
+                argumentContainer.parse(parser, executor, context)
                 if (executor.hasPermission(permission))
                     execute(argumentContainer, executor, context)
                 else
