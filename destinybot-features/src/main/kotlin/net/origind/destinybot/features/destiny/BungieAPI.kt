@@ -1,6 +1,6 @@
 package net.origind.destinybot.features.destiny
 
-import io.ktor.network.sockets.*
+import io.ktor.client.network.sockets.*
 import kotlinx.coroutines.*
 import net.origind.destinybot.features.destiny.response.*
 import net.origind.destinybot.features.getJson

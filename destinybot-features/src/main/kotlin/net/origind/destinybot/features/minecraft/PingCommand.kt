@@ -13,7 +13,6 @@ import kotlinx.coroutines.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.origind.destinybot.api.command.*
-import kotlin.coroutines.suspendCoroutine
 
 lateinit var minecraftConfig: MinecraftConfig
 
@@ -90,7 +89,7 @@ object PingCommand: AbstractCommand("/ping") {
         val client = TcpClientSession(host, port, statusProtocol)
 
         val infoAsync = async(Dispatchers.IO) {
-            suspendCoroutine<ServerStatusInfo> {
+            suspendCancellableCoroutine<ServerStatusInfo> {
                 client.setFlag(
                     MinecraftConstants.SERVER_INFO_HANDLER_KEY,
                     ServerInfoHandler { _, i ->
@@ -100,7 +99,7 @@ object PingCommand: AbstractCommand("/ping") {
         }
 
         val pingTimeAsync = async(Dispatchers.IO) {
-            suspendCoroutine<Long> {
+            suspendCancellableCoroutine<Long> {
                 client.setFlag(
                     MinecraftConstants.SERVER_PING_TIME_HANDLER_KEY,
                     ServerPingTimeHandler { _, p ->

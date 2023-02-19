@@ -1,6 +1,6 @@
 package net.origind.destinybot.features.destiny
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.origind.destinybot.api.command.*

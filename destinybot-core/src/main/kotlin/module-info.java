@@ -1,10 +1,8 @@
 module destinybot.core {
     requires java.base;
     requires kotlinx.coroutines.core.jvm;
-    requires okhttp3;
     requires org.slf4j;
     requires java.desktop;
-    requires ktor.client.core.jvm;
     requires mirai.core.api.jvm;
     requires kotlin.stdlib;
     requires it.unimi.dsi.fastutil;
@@ -17,8 +15,8 @@ module destinybot.core {
     requires com.squareup.moshi;
     requires com.electronwill.nightconfig.core;
     requires com.electronwill.nightconfig.toml;
-    requires kotlinx.serialization.json.jvm;
-    requires kotlinx.serialization.core.jvm;
+    requires kotlinx.serialization.json;
+    requires kotlinx.serialization.core;
 
     exports net.origind.destinybot.core;
 }

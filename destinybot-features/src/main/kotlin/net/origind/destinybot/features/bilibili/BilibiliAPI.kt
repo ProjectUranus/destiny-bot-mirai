@@ -44,4 +44,6 @@ suspend fun sameFollow(cookie: String, vmid: Long) =
     }.data?.list ?: emptyList()
 
 suspend fun getUserInfo(mid: Long) =
-    getJson<BilibiliUserInfoResponse>("https://api.bilibili.com/x/space/acc/info?mid=$mid").data
+    getJson<BilibiliUserInfoResponse>("https://api.bilibili.com/x/space/acc/info?mid=$mid"){
+        header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0")
+    }.data

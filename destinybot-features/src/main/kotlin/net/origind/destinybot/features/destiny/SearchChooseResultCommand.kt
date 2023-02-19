@@ -1,6 +1,6 @@
 package net.origind.destinybot.features.destiny
 
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import net.origind.destinybot.api.command.AbstractCustomCommand
 import net.origind.destinybot.api.command.ArgumentContainer
 import net.origind.destinybot.api.command.CommandContext

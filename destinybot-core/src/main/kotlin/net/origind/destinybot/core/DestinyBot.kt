@@ -6,9 +6,12 @@ import it.unimi.dsi.fastutil.longs.LongArrayList
 import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.BotFactory
+import net.mamoe.mirai.contact.Group
+import net.mamoe.mirai.contact.PermissionDeniedException
 import net.mamoe.mirai.event.ListeningStatus
 import net.mamoe.mirai.event.events.MemberJoinRequestEvent
 import net.mamoe.mirai.event.subscribeMessages
+import net.mamoe.mirai.message.data.QuoteReply
 import net.mamoe.mirai.utils.BotConfiguration
 import net.origind.destinybot.api.command.CommandContext
 import net.origind.destinybot.api.plugin.Plugin
@@ -53,7 +56,7 @@ object DestinyBot : Closeable {
 			config.getOrThrow<String>("account.password") { IllegalArgumentException("配置中未设置密码") }
 		) {
             fileBasedDeviceInfo()
-            protocol = BotConfiguration.MiraiProtocol.ANDROID_PAD
+            protocol = BotConfiguration.MiraiProtocol.ANDROID_WATCH
         }
         TimerManager // init
     }
@@ -132,6 +135,21 @@ object DestinyBot : Closeable {
             always {
                 val context = CommandContext(sender.id, subject.id, it, time.toLong())
                 CommandManager.parse(it, MiraiUserCommandExecutor(sender), context)
+            }
+            case("设精") {
+                if (message.contains(QuoteReply.Key)) {
+                    if (MiraiUserCommandExecutor(sender).hasPermission("op.essence.set")) {
+                        try {
+                            if ((subject as? Group)?.setEssenceMessage(message[QuoteReply.Key]!!.source) != true) {
+                                subject.sendMessage("设精失败，请检查你的设置")
+                            }
+                        } catch (e: PermissionDeniedException) {
+                            subject.sendMessage("设精失败：" + e.localizedMessage)
+                        }
+                    } else {
+                        subject.sendMessage("你没有足够的权限")
+                    }
+                }
             }
             case("花园世界").reply("前往罗斯128b，与你的扭曲人伙伴们一起延缓凋零的复苏。")
             case("小行星带").reply("调查新近出现的bart遗迹，查明它的装配线生成概率。")

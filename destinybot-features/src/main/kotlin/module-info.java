@@ -14,7 +14,7 @@ module destinybot.features {
     requires kotlinx.coroutines.core.jvm;
     requires mcprotocollib;
     requires packetlib;
-    requires ktor.client.core.jvm;
+    requires io.ktor.client.core;
     requires java.desktop;
     requires org.slf4j;
     requires com.electronwill.nightconfig.core;
