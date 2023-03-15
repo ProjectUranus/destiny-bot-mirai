@@ -1,6 +1,6 @@
 # Destiny Bot - Mirai 版
 
-![](https://socialify.git.ci/ProjectUranus/destiny-bot-mirai/image?description=1&descriptionEditable=A%20enhanced%20QQ%20bot&font=Inter&language=1&name=1&owner=1&pattern=Floating%20Cogs&stargazers=1&theme=Light)
+**本项目已废弃，新开发转向 [rust-destinybot](https://github.com/LasmGratel/rust-destinybot)，面向 OneBot 11 API 开发。**
 
 LG 自用机器人。
 
