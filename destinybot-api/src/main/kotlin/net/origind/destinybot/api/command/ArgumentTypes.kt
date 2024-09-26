@@ -28,6 +28,8 @@ object QQArgument: ArgumentType<Long> {
     override val clazz: Class<Long> = Long::class.java
 
     override fun parse(literal: String): Long = literal.removePrefix("@").toLongOrNull() ?: throw ArgumentParseException("Not a valid qq number")
+
+    override fun parse(literal: String, executor: CommandExecutor, context: CommandContext): Long = if(literal == "self") context.senderId else parse(literal)
 }
 
 object DoubleArgument: ArgumentType<Double> {

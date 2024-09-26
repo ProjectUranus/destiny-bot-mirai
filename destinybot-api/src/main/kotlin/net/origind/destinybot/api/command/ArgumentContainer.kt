@@ -27,7 +27,7 @@ class ArgumentContainer(val arguments: List<ArgumentContext<*>>) {
         }.trim()
     }
 
-    fun parse(parser: CommandParser) {
+    fun parse(parser: CommandParser, executor: CommandExecutor, context: CommandContext) {
         argumentMap.clear()
         deque = ArrayDeque(arguments)
         var parsedRequiredArguments = 0
@@ -37,23 +37,23 @@ class ArgumentContainer(val arguments: List<ArgumentContext<*>>) {
             if (!arg.optional) {
                 if (internal != null) {
                     argumentMap[arg.name] =
-                        arg.type.parse(internal) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
+                        arg.type.parse(internal, executor, context) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
                     internal = null
                 } else {
                     argumentMap[arg.name] =
-                        arg.type.parse(parser.take()) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
+                        arg.type.parse(parser.take(), executor, context) ?: throw ArgumentParseException("无法解析 ${arg.name} 参数")
                 }
                 parsedRequiredArguments++
             } else {
                 if (internal != null) {
-                    val parsed = arg.type.parse(internal)
+                    val parsed = arg.type.parse(internal, executor, context)
                     if (parsed != null) {
                         argumentMap[arg.name] = parsed
                         internal = null
                     }
                 } else {
                     val str = parser.take()
-                    val parsed = arg.type.parse(str)
+                    val parsed = arg.type.parse(str, executor, context)
                     if (parsed != null) {
                         argumentMap[arg.name] = parsed
                     } else {

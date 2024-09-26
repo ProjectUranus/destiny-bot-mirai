@@ -14,11 +14,11 @@ abstract class AbstractCustomCommand(name: String) : AbstractCommand(name), Cust
                     parser.take()
                     getSubcommand(sub)?.parse(parser, executor, context)
                 } else {
-                    argumentContainer.parse(parser)
+                    argumentContainer.parse(parser, executor, context)
                     execute(main, argumentContainer, executor, context)
                 }
             } else {
-                argumentContainer.parse(parser)
+                argumentContainer.parse(parser, executor, context)
                 execute(main, argumentContainer, executor, context)
             }
         } catch (e: ArgumentParseException) {
